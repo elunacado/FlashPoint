@@ -27,7 +27,7 @@ Usando los ## [la version que corresponda] - la fecha en formato DD/MM/AAAA
 
 ### Seguiremos construyendo el changelog en orden descendente
 
-## [0.0.0] - 3/11/2024
+## [0.0.1] - 3/11/2024
 Usando los ## Usamos el verbo necesario
 ### Agregue
 Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre parentesis
@@ -35,6 +35,7 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 - Se creo el CHANGELOG (3/11/2024)
 - Se creo el PULL_REQUEST_TEMPLATE.md (3/11/2024)
 - Se agregaron los archivos necesarios para la conexión del server (3/11/2024)
+- El caso de prueba (3/11/2024) 
 
 ### Cambie  
 - Modifique el .gitignore para ir de acuerdo a lo enseñado (3/11/2024)
