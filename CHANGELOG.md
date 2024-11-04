@@ -27,7 +27,7 @@ Usando los ## [la version que corresponda] - la fecha en formato DD/MM/AAAA
 
 ### Seguiremos construyendo el changelog en orden descendente
 
-## [0.0.0] - 3/11/2024
+## [0.0.1] - 3/11/2024
 Usando los ## Usamos el verbo necesario
 ### Agregue
 Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre parentesis
