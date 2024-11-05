@@ -22,3 +22,9 @@ class CellAgent(Agent):
             "right": raw_walls[3] == "1",
         }
         return walls
+
+    def set_state(self, state_key):
+        if state_key in CellAgent.STATES:
+            self.state = CellAgent.STATES[state_key]
+        else:
+            raise ValueError("Estado no válido")

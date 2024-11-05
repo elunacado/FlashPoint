@@ -49,3 +49,4 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 ### Arregle
 - Un problema utilizando Github (4/11/2024)
 - Cambie los archivos de .ipynb a .py (4/11/2024)
+- Agregue la posibilidad de modificar el estado de la celda (5/11/2024)
