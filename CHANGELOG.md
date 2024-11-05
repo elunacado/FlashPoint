@@ -45,3 +45,5 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 - El folder de agentes (4/11/2024)
 - El folder de los modelos (4/11/2024)
 - Los archivos de los agentes (4/11/2024)
+- El archivos del modelo (4/11/2024)
+- El archivo para el agente de la celula (4/11/2024)
