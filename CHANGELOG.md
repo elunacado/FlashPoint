@@ -39,3 +39,9 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 
 ### Cambie  
 - Modifique el .gitignore para ir de acuerdo a lo enseñado (3/11/2024)
+
+## [0.0.2] - 4/11/2024
+### Agregue
+- El folder de agentes (4/11/2024)
+- El folder de los modelos (4/11/2024)
+- Los archivos de los agentes (4/11/2024)
