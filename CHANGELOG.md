@@ -21,6 +21,8 @@ Se utilizaran los siguientes verbos para la redacción del changelog
 
 * Arregle: Cuando arregles bugs
 
+* Refactorice: Cuando reescribas un codigo pero mantenga los datos
+
 Y la manera de redactar sera
 
 Usando los ## [la version que corresponda] - la fecha en formato DD/MM/AAAA
@@ -53,3 +55,5 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 ### Arregle
 - Un problema utilizando Github (4/11/2024)
 - Cambie los archivos de .ipynb a .py (4/11/2024)
+### Refactorice
+- Ela agente de empleado (6/11/2024)
