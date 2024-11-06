@@ -29,3 +29,16 @@ class CellAgent(Agent):
             self.state = CellAgent.STATES[state_key]
         else:
             raise ValueError("Estado no válido")
+
+    def reduce_goo(self):
+        if self.state == "gooed":
+            self.set_state(1)  # Reducir a "droplets"
+            print(f"Goo reduced to droplets at {self.pos}")
+        elif self.state == "droplets":
+            self.set_state(0)  # Limpiar la celda
+            print(f"Goo cleared at {self.pos}")
+    
+    def swallowed_by_the_goo(self, employee):
+        entrance_position = self.model.entrance_position
+        employee.position = entrance_position
+        print("GULP!")
