@@ -56,4 +56,6 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 - Un problema utilizando Github (4/11/2024)
 - Cambie los archivos de .ipynb a .py (4/11/2024)
 ### Refactorice
-- Ela agente de empleado (6/11/2024)
+- El agente de empleado (6/11/2024)
+### Modifique
+- El tc2008B_server.py (7/11/2024)
