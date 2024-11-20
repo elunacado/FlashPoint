@@ -10,6 +10,7 @@ class EmployeeAgent(Agent):
         0: "clear",
         1: "droplets",
         2: "gooed",
+        3: "rescue_point",
     }
 
     DOOR_STATES = {

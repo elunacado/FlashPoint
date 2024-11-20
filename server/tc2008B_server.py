@@ -19,9 +19,9 @@ class Server(BaseHTTPRequestHandler):
 
         # Aquí podrías hacer un cálculo para una nueva posición
         new_position = {
-            "x": received_position["x"] + 1.0,  # Ejemplo de cálculo
+            "x": received_position["x"] + 2.0,  # Ejemplo de cálculo
             "y": received_position["y"],
-            "z": received_position["z"] + 1.0
+            "z": received_position["z"] + 2.0
         }
 
         # Enviar la nueva posición al cliente
