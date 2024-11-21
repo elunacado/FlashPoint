@@ -10,7 +10,7 @@ class EmployeeAgent(Agent):
         0: "clear",
         1: "droplets",
         2: "gooed",
-        3: "rescue_point",
+        3: "entry_point",
     }
 
     DOOR_STATES = {
@@ -47,7 +47,6 @@ class EmployeeAgent(Agent):
 
     #--START OF THE TURN METHODS--
     def reset_actions(self):
-        # Set initial energy for the next turn including stored energy, capped by MAX_ACTIONS
         self.energy = min(4 + self.energy_storage, EmployeeAgent.MAX_ACTIONS)
         self.energy_storage = 0
         print(f"{self}'s energy reset to {self.energy} with stored energy cleared.")
@@ -223,9 +222,11 @@ class EmployeeAgent(Agent):
             for agent in cell_contents:
                 if agent.state == "gooed":
                     agent.set_state(1)  # Reducir a "droplets"
+                    self.energy -= 1
                     print(f"Goo reduced to droplets at {pos}")
                 elif agent.state == "droplets":
-                    agent.set_state(0)  # Limpiar la celda
+                    agent.set_state(0)
+                    self.energy -= 1 # Limpiar la celda
                     print(f"Goo cleared at {pos}")
 
     def set_state(self, state_key):
