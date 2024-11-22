@@ -59,3 +59,8 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 - El agente de empleado (6/11/2024)
 ### Modifique
 - El tc2008B_server.py (7/11/2024)
+
+## [0.0.2] - 21/11/2024
+Usando los ## Usamos el verbo necesario
+### Quite & Cambie
+- Elimine los folders de agente y modelo, para ponerlos en un mismo archivo. 
