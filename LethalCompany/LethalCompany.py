@@ -288,3 +288,50 @@ class ModeloEdificio(Model):
         if self.running:
             self.steps += 1
             self.datacollector.collect(self)
+
+# Leer el archivo testCase.txt
+with open("TestCase/testCase.txt", "r") as file:
+    lines = file.readlines()
+
+# Procesar las líneas según la cantidad fija de líneas por sección
+# Sección 1: matrix_walls (6 líneas)
+matrix_walls = [line.split() for line in lines[:6]]
+
+# Sección 2: matrix_poi (3 líneas)
+def process_poi_row(row):
+    return [int(item) if item.isdigit() else item for item in row.split()]
+
+matrix_poi = [process_poi_row(line) for line in lines[6:9]]
+
+# Sección 3: matrix_goo (10 líneas)
+matrix_goo = [list(map(int, line.split())) for line in lines[9:19]]
+
+# Sección 4: matrix_doors (8 líneas)
+matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
+
+# Sección 5: matrix_entry_points (4 líneas)
+matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
+
+# Imprimir los resultados para verificar
+print("Walls Matrix:")
+for row in matrix_walls:
+    print(row)
+
+print("\nPOI Matrix:")
+for row in matrix_poi:
+    print(row)
+
+print("\nGoo Matrix:")
+for row in matrix_goo:
+    print(row)
+
+print("\nDoors Matrix:")
+for row in matrix_doors:
+    print(row)
+
+print("\nEntry Points Matrix:")
+for row in matrix_entry_points:
+    print(row)
+
+# Crear una instancia del modelo
+model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)

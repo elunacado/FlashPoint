@@ -63,4 +63,6 @@ Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre p
 ## [0.0.2] - 21/11/2024
 Usando los ## Usamos el verbo necesario
 ### Quite & Cambie
-- Elimine los folders de agente y modelo, para ponerlos en un mismo archivo. 
+- Elimine los folders de agente y modelo, para ponerlos en un mismo archivo. (21/11/2024)
+### Agregue
+- El modelo base y la lectura del input.(21/11/2024)
