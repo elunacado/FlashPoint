@@ -2,6 +2,7 @@ import json
 import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+
 class Server(BaseHTTPRequestHandler):
     def _set_response(self):
         self.send_response(200)
