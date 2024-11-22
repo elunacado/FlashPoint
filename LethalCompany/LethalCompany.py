@@ -18,6 +18,8 @@ from mesa.time import RandomActivation
 import numpy as np
 import pandas as pd
 
+import json
+
 # --------------------------------------------------------------------
 # --------------------------- Employee -------------------------------
 # --------------------------------------------------------------------
@@ -290,7 +292,7 @@ class ModeloEdificio(Model):
             self.datacollector.collect(self)
 
 # Leer el archivo testCase.txt
-with open("TestCase/testCase.txt", "r") as file:
+with open("../testCase/testCase.txt", "r") as file:
     lines = file.readlines()
 
 # Procesar las líneas según la cantidad fija de líneas por sección
@@ -312,6 +314,7 @@ matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
 # Sección 5: matrix_entry_points (4 líneas)
 matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
 
+"""
 # Imprimir los resultados para verificar
 print("Walls Matrix:")
 for row in matrix_walls:
@@ -332,6 +335,24 @@ for row in matrix_doors:
 print("\nEntry Points Matrix:")
 for row in matrix_entry_points:
     print(row)
+"""
+
 
 # Crear una instancia del modelo
 model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
+
+data = {
+    "Walls": matrix_walls,
+    "Poi": matrix_poi,
+    "Goo": matrix_goo,
+    "Doors": matrix_doors,
+    "Entry_points": matrix_entry_points
+}
+
+json_data = json.dumps(data)
+print(json_data)
+
+def get_matrixes():
+    return json_data
+
+
