@@ -4,37 +4,44 @@ using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
-public class ServerResponse
+public class Wall
 {
-    public List<List<string>> Walls;         // Cambiado a listas de listas
-    public List<List<object>> Poi;          // Lista de listas de objetos
-    public List<List<int>> Goo;             // Lista de listas de enteros
-    public List<List<int>> Doors;           // Lista de listas de enteros
-    public List<List<int>> Entry_points;    // Lista de listas de enteros
+    public int x;
+    public int y;
+    public Walls walls;
 }
 
+[System.Serializable]
+public class Walls
+{
+    public bool top;
+    public bool left;
+    public bool bottom;
+    public bool right;
+}
 
+[System.Serializable]
+public class ServerResponse
+{
+    public List<Wall> Walls;
+   // public List<List<object>> Poi;
+    //public List<List<int>> Goo;
+    //public List<List<int>> Doors;
+    //public List<List<int>> Entry_points;
+}
 
 public class WebClient : MonoBehaviour
 {
-    void Update()
+    void Start()
     {
-        // Detecta si se presionó la barra espaciadora
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // Simula el envío de datos al servidor
-            Vector3 newPosition = new Vector3(1, 2, 3); // Puedes cambiar esto por la posición real de tu objeto
-            string json = JsonUtility.ToJson(newPosition);
-            StartCoroutine(SendData(json));
-        }
+        // Llama al servidor al iniciar el juego
+        StartCoroutine(SendRequest());
     }
 
-    IEnumerator SendData(string json)
+    IEnumerator SendRequest()
     {
-        using (UnityWebRequest www = new UnityWebRequest("http://localhost:8585", "POST"))
+        using (UnityWebRequest www = UnityWebRequest.PostWwwForm("http://localhost:8585", ""))
         {
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
-            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
 
@@ -46,7 +53,7 @@ public class WebClient : MonoBehaviour
             }
             else
             {
-                Debug.Log("Data sent successfully!");
+                Debug.Log("Data received successfully!");
                 // Maneja la respuesta
                 string responseText = www.downloadHandler.text;
                 Debug.Log($"Response: {responseText}");
@@ -65,19 +72,16 @@ public class WebClient : MonoBehaviour
             ServerResponse response = JsonUtility.FromJson<ServerResponse>(json);
 
             // Accede a la lista Walls y muestra su contenido
-            for (int i = 0; i < response.Walls.Count; i++)
+            foreach (Wall wall in response.Walls)
             {
-                for (int j = 0; j < response.Walls[i].Count; j++)
-                {
-                    Debug.Log($"Walls[{i}][{j}]: {response.Walls[i][j]}");
-                }
+                Debug.Log($"Wall at ({wall.x}, {wall.y}) - Top: {wall.walls.top}, Left: {wall.walls.left}, Bottom: {wall.walls.bottom}, Right: {wall.walls.right}");
             }
 
             // Ejemplo: Acceder a Entry_points
-            for (int i = 0; i < response.Entry_points.Count; i++)
-            {
-                Debug.Log($"Entry_points[{i}]: ({response.Entry_points[i][0]}, {response.Entry_points[i][1]})");
-            }
+            //for (int i = 0; i < response.Entry_points.Count; i++)
+           // {
+           //     Debug.Log($"Entry_points[{i}]: ({response.Entry_points[i][0]}, {response.Entry_points[i][1]})");
+           // }
 
             // Repite esto para Poi, Goo, y Doors si necesitas procesarlos
         }

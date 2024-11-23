@@ -341,12 +341,26 @@ for row in matrix_entry_points:
 # Crear una instancia del modelo
 model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
 
+unityFriendlyWalls = []
+
+for x in range(len(matrix_walls)):  # Recorrer las filas
+    for y in range(len(matrix_walls[0])):  # Recorrer las columnas
+        walls_str = matrix_walls[x][y]  # Extraer la cadena de paredes
+        walls = {
+            "top": walls_str[0] == "1",
+            "left": walls_str[1] == "1",
+            "bottom": walls_str[2] == "1",
+            "right": walls_str[3] == "1"
+        }
+        unityFriendlyWalls.append({"x": x, "y": y, "Walls": walls})
+
+
 data = {
-    "Walls": matrix_walls,
-    "Poi": matrix_poi,
-    "Goo": matrix_goo,
-    "Doors": matrix_doors,
-    "Entry_points": matrix_entry_points
+    "Walls": unityFriendlyWalls,
+#    "Poi": matrix_poi,
+#    "Goo": matrix_goo,
+#    "Doors": matrix_doors,
+#    "Entry_points": matrix_entry_points
 }
 
 json_data = json.dumps(data)
@@ -356,4 +370,3 @@ def get_matrixes():
     print(json_data)
     return json_data
 
-get_matrixes()

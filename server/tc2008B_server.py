@@ -1,37 +1,47 @@
-import json
-import logging
+# TC2008B Modelación de Sistemas Multiagentes con gráficas computacionales
+# Python server to interact with Unity via POST
+# Sergio Ruiz-Loza, Ph.D. March 2021
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import logging
+import json
+import sys
+import os
+
+# Añadir el directorio de LethalCompany.py al sys.path si no están en el mismo directorio
+sys.path.append(os.path.dirname(__file__))
+
+# Importar LethalCompany
 import LethalCompany
 
 class Server(BaseHTTPRequestHandler):
+    
     def _set_response(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
+        
+    def do_GET(self):
+        self._set_response()
+        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
 
     def do_POST(self):
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        logging.info(f"Received POST data: {post_data.decode('utf-8')}")
 
-            # Parse the JSON data (if needed)
-            json_data = LethalCompany.get_matrixes()  # Modify this based on what you need
-
-            # Send the response with the JSON data
-            self._set_response()
-            self.wfile.write(json.dumps(json_data).encode('utf-8'))
-
-        except Exception as e:
-            logging.error(f"Error processing POST request: {str(e)}")
-            self.send_response(400)  # Bad Request if something goes wrong
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": "Bad Request"}).encode('utf-8'))
+        # Llamar a la función get_matrixes de LethalCompany
+        json_data = LethalCompany.get_matrixes()
+        
+        # Enviar la respuesta
+        self._set_response()
+        self.wfile.write(json_data.encode('utf-8'))
 
 def run(server_class=HTTPServer, handler_class=Server, port=8585):
     logging.basicConfig(level=logging.INFO)
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    logging.info(f"Starting httpd on port {port}...\n")
+    logging.info("Starting httpd...\n")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
