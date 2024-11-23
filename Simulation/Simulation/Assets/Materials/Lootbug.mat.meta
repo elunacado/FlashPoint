@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Simulation/Simulation/Assets/Materials/Lootbug.mat.meta
 guid: caa468d9411c4c244838b41ef794a599
+=======
+guid: c650c0b8842fad248b858f87accbcd6e
+>>>>>>> random-employee-movement-v2:Simulacion/Simulacion/Assets/Materials/Lootbug.mat.meta
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 2100000

@@ -11,10 +11,16 @@ Material:
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
+<<<<<<< HEAD:Simulation/Simulation/Assets/Materials/Mine.mat
   m_ValidKeywords:
   - _EMISSION
   m_InvalidKeywords: []
   m_LightmapFlags: 1
+=======
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+>>>>>>> random-employee-movement-v2:Simulacion/Simulacion/Assets/Materials/Mine.mat
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -45,7 +51,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
+<<<<<<< HEAD:Simulation/Simulation/Assets/Materials/Mine.mat
         m_Texture: {fileID: 2800000, guid: 2d4473e75f2983b4cb49b5f58e0d3c17, type: 3}
+=======
+        m_Texture: {fileID: 2800000, guid: 5ef26797fd330db47adc50113efc6bbb, type: 3}
+>>>>>>> random-employee-movement-v2:Simulacion/Simulacion/Assets/Materials/Mine.mat
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -67,7 +77,11 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
+<<<<<<< HEAD:Simulation/Simulation/Assets/Materials/Mine.mat
     - _Glossiness: 0.203
+=======
+    - _Glossiness: 0.5
+>>>>>>> random-employee-movement-v2:Simulacion/Simulacion/Assets/Materials/Mine.mat
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
