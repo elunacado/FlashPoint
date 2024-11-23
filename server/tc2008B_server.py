@@ -1,6 +1,7 @@
 import json
 import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import LethalCompany
 
 class Server(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -9,30 +10,28 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        logging.info(f"Received POST data: {post_data.decode('utf-8')}")
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
 
-        # Procesar la posición recibida (si quieres puedes utilizarla)
-        received_position = json.loads(post_data)
-        print(f"Received Position: {received_position}")
+            # Parse the JSON data (if needed)
+            json_data = LethalCompany.get_matrixes()  # Modify this based on what you need
 
-        # Aquí podrías hacer un cálculo para una nueva posición
-        new_position = {
-            "x": received_position["x"] + 2.0,  # Ejemplo de cálculo
-            "y": received_position["y"],
-            "z": received_position["z"] + 2.0
-        }
+            # Send the response with the JSON data
+            self._set_response()
+            self.wfile.write(json.dumps(json_data).encode('utf-8'))
 
-        # Enviar la nueva posición al cliente
-        self._set_response()
-        self.wfile.write(json.dumps(new_position).encode('utf-8'))
+        except Exception as e:
+            logging.error(f"Error processing POST request: {str(e)}")
+            self.send_response(400)  # Bad Request if something goes wrong
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Bad Request"}).encode('utf-8'))
 
 def run(server_class=HTTPServer, handler_class=Server, port=8585):
     logging.basicConfig(level=logging.INFO)
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    logging.info("Starting httpd...\n")
+    logging.info(f"Starting httpd on port {port}...\n")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
