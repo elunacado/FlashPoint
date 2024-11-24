@@ -95,6 +95,16 @@ public class WebClient : MonoBehaviour
                     Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
 
                 }
+                else if(wall.Walls.left && wall.Walls.right){
+                    Debug.Log("Left and right");
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+                }
+                else if (wall.Walls.top && wall.Walls.bottom){
+                    Debug.Log("Top and bottom");
+                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f, 0, 0), Quaternion.identity);
+                }
                 else if (wall.Walls.bottom && wall.Walls.left){
                     Debug.Log("Bottom and left");
                     Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f,0,0), Quaternion.identity);
