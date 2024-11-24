@@ -366,7 +366,5 @@ data = {
 json_data = json.dumps(data)
 
 def get_matrixes():
-    print("HEARD FROM LEHTAL COMPANY")
-    print(json_data)
     return json_data
 

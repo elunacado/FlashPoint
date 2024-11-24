@@ -8,7 +8,7 @@ public class Wall
 {
     public int x;
     public int y;
-    public Walls walls;
+    public Walls Walls;
 }
 
 [System.Serializable]
@@ -32,6 +32,10 @@ public class ServerResponse
 
 public class WebClient : MonoBehaviour
 {
+    public GameObject horizontalWallPrefab;
+    public GameObject verticalWallPrefab;
+   
+    
     void Start()
     {
         // Llama al servidor al iniciar el juego
@@ -53,13 +57,14 @@ public class WebClient : MonoBehaviour
             }
             else
             {
-                Debug.Log("Data received successfully!");
                 // Maneja la respuesta
                 string responseText = www.downloadHandler.text;
-                Debug.Log($"Response: {responseText}");
 
                 // Procesar el JSON recibido
                 ProcessReceivedJson(responseText);
+                
+                
+            
             }
         }
     }
@@ -70,20 +75,72 @@ public class WebClient : MonoBehaviour
         {
             // Deserializa el JSON recibido
             ServerResponse response = JsonUtility.FromJson<ServerResponse>(json);
-
+            
             // Accede a la lista Walls y muestra su contenido
             foreach (Wall wall in response.Walls)
             {
-                Debug.Log($"Wall at ({wall.x}, {wall.y}) - Top: {wall.walls.top}, Left: {wall.walls.left}, Bottom: {wall.walls.bottom}, Right: {wall.walls.right}");
+                // Instanciar prefabs dependiendo de la información de la pared
+                Vector3 position = new Vector3(wall.x*-1, 0, wall.y*-1);
+                if( wall.Walls.bottom && wall.Walls.left && wall.Walls.right){
+                    //WORKS
+                    Debug.Log("Bottom, left and right");
+                    Instantiate(horizontalWallPrefab, position + new Vector3(-.894f,0,0), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+                }
+                else if(wall.Walls.top && wall.Walls.left && wall.Walls.right){
+                    Debug.Log("Top, left and right");
+                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+
+                }
+                else if (wall.Walls.bottom && wall.Walls.left){
+                    Debug.Log("Bottom and left");
+                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f,0,0), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+                }
+                else if (wall.Walls.bottom && wall.Walls.right){
+                    Debug.Log("Bottom and right");
+                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f,0,0), Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+                }
+                else if (wall.Walls.top && wall.Walls.left){
+                    Debug.Log("Top and left");
+                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+
+                }
+                else if (wall.Walls.top && wall.Walls.right){
+                    Debug.Log("Top and right");
+                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+                }
+                else if (wall.Walls.top){
+                    Debug.Log("Top");
+                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                }
+                else if (wall.Walls.bottom){
+                    Debug.Log("Bottom");
+                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f,0,0), Quaternion.identity);
+                }
+                else if (wall.Walls.left)
+                {
+                    Debug.Log("Left");
+                    // Desplaza -.5 en x y .5 en z
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
+                }
+                else if (wall.Walls.right)
+                {   
+                    Debug.Log("Right");
+                    // Desplaza -.5 en x y .5 en z
+                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
+                }
+                else{
+                    Debug.Log("No walls");
+                };
+
             }
-
-            // Ejemplo: Acceder a Entry_points
-            //for (int i = 0; i < response.Entry_points.Count; i++)
-           // {
-           //     Debug.Log($"Entry_points[{i}]: ({response.Entry_points[i][0]}, {response.Entry_points[i][1]})");
-           // }
-
-            // Repite esto para Poi, Goo, y Doors si necesitas procesarlos
         }
         catch (System.Exception ex)
         {
