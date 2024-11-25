@@ -381,6 +381,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   horizontalWallPrefab: {fileID: 7795902085263975530, guid: eb9d4404bb3172248ad0793e9570450c, type: 3}
   verticalWallPrefab: {fileID: 8351983003072833226, guid: bb7545832e2f15b48bfbc5e9ce1664e4, type: 3}
+  POIPrefab: {fileID: 3805980477493768935, guid: 9926317b7bd81ad4e9a0932e8ac7e6fa, type: 3}
+  fakePoiPrefab: {fileID: 392495336822080732, guid: df8921bf8caeeaa44b420f08e4ceee43, type: 3}
 --- !u!4 &128114320
 Transform:
   m_ObjectHideFlags: 0

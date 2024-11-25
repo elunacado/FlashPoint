@@ -63,7 +63,6 @@ def get_grid_doors_entries(model):
 def get_grid_walls(model):
     """Grid que representa las paredes."""
     grid = model.walls.copy()
-
     return grid
 
 def get_grid_poi(model):
@@ -314,57 +313,38 @@ matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
 # Sección 5: matrix_entry_points (4 líneas)
 matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
 
-"""
-# Imprimir los resultados para verificar
-print("Walls Matrix:")
-for row in matrix_walls:
-    print(row)
-
-print("\nPOI Matrix:")
-for row in matrix_poi:
-    print(row)
-
-print("\nGoo Matrix:")
-for row in matrix_goo:
-    print(row)
-
-print("\nDoors Matrix:")
-for row in matrix_doors:
-    print(row)
-
-print("\nEntry Points Matrix:")
-for row in matrix_entry_points:
-    print(row)
-"""
-
-
 # Crear una instancia del modelo
 model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
 
 unityFriendlyWalls = []
+unityFriendlyPoi = []
 
-for x in range(len(matrix_walls)):  # Recorrer las filas
-    for y in range(len(matrix_walls[0])):  # Recorrer las columnas
-        walls_str = matrix_walls[x][y]  # Extraer la cadena de paredes
-        walls = {
-            "top": walls_str[0] == "1",
-            "left": walls_str[1] == "1",
-            "bottom": walls_str[2] == "1",
-            "right": walls_str[3] == "1"
-        }
-        unityFriendlyWalls.append({"x": x, "y": y, "Walls": walls})
+matrixWallsInDecimal = get_grid_walls(model)
+matrixPoiInDecimal = get_grid_poi(model)
 
 
+for x in range(len(matrixWallsInDecimal)):  # Recorrer las filas
+    for y in range(len(matrixWallsInDecimal[0])):  # Recorrer las columnas
+        wall_value = int(matrixWallsInDecimal[x][y])  # Extraer el valor entero de la pared
+        unityFriendlyWalls.append({"x": x, "y": y, "WallValue": wall_value})
+
+
+for x in range(len(matrixPoiInDecimal)):  # Recorrer las filas
+    for y in range(len(matrixPoiInDecimal[0])):  # Recorrer las columnas
+        poi_value = int(matrixPoiInDecimal[x][y])  # Extraer el valor entero del POI
+        unityFriendlyPoi.append({"x": x, "y": y, "PoiValue": poi_value})
+
+# Construir el diccionario de datos
 data = {
     "Walls": unityFriendlyWalls,
-#    "Poi": matrix_poi,
-#    "Goo": matrix_goo,
-#    "Doors": matrix_doors,
-#    "Entry_points": matrix_entry_points
+    "Poi": unityFriendlyPoi,
+    # "Goo": matrix_goo,
+    # "Doors": matrix_doors,
+    # "Entry_points": matrix_entry_points
 }
 
+# Convertir el diccionario a JSON
 json_data = json.dumps(data)
 
 def get_matrixes():
     return json_data
-
