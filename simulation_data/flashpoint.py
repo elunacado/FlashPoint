@@ -756,6 +756,7 @@ class ModeloEdificio(Model):
                 "Grid 3 POI": get_grid_poi,
                 "Grid 4 Threatmarkers": get_grid_threat_markers,
                 "Grid 5 Agents": get_grid,
+                "Estados Paredes": lambda model: model.wall_states,
                 "Steps": lambda model: model.steps,
                 "Edificio colapsado": lambda model: model.collapsed_building,
                 "Victimas salvadas": lambda model: model.saved_victims,
@@ -1225,14 +1226,24 @@ class ModeloEdificio(Model):
 
 # Crear el json
 import json
+def convert_keys_to_str(data):
+    """
+    Convierte las claves de un diccionario a cadenas.
+    """
+    if isinstance(data, dict):
+        return {str(key): convert_keys_to_str(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_keys_to_str(element) for element in data]
+    else:
+        return data
 
-def run_model_and_save_to_json(steps: int, model_instance: ModeloEdificio, output_file: str):
+def run_model_and_save_to_json(steps: int, model_instance, output_file: str):
     """
     Ejecuta el modelo y guarda los datos recolectados en un archivo JSON.
 
     Args:
         steps (int): Número de pasos para ejecutar el modelo.
-        model_instance (ModeloEdificio): Instancia del modelo del edificio.
+        model_instance: Instancia del modelo.
         output_file (str): Nombre del archivo donde se guardará el JSON.
     """
     # Ejecutar el modelo por el número de pasos especificado
@@ -1256,33 +1267,22 @@ def run_model_and_save_to_json(steps: int, model_instance: ModeloEdificio, outpu
     for index, row in collected_data.iterrows():
         json_data["simulation_data"].append({
             "step": row["Steps"],
-            "grid_doors_entries": row["Grid 1 Puertas y salidas"],
-            "grid_walls": row["Grid 2 Paredes"],
-            "grid_poi": row["Grid 3 POI"],
-            "grid_threat_markers": row["Grid 4 Threatmarkers"],
-            "grid_agents": row["Grid 5 Agents"],
+            "grid_doors_entries": np.array(row["Grid 1 Puertas y salidas"]).tolist(),
+            "grid_walls": np.array(row["Grid 2 Paredes"]).tolist(),
+            "grid_poi": np.array(row["Grid 3 POI"]).tolist(),
+            "grid_threat_markers": np.array(row["Grid 4 Threatmarkers"]).tolist(),
+            "grid_agents": np.array(row["Grid 5 Agents"]).tolist(),
+            "wall_states": convert_keys_to_str(row["Estados Paredes"]),  # Convertir claves a cadenas
             "collapsed_building": row["Edificio colapsado"],
             "saved_victims": row["Victimas salvadas"],
             "lost_victims": row["Victimas perdidas"],
         })
 
-    # Asegurarse de convertir los arreglos Numpy a listas antes de serializarlos
-    json_data["simulation_data"] = [{
-        "step": row["Steps"],
-        "grid_doors_entries": np.array(row["Grid 1 Puertas y salidas"]).tolist(),
-        "grid_walls": np.array(row["Grid 2 Paredes"]).tolist(),
-        "grid_poi": np.array(row["Grid 3 POI"]).tolist(),
-        "grid_threat_markers": np.array(row["Grid 4 Threatmarkers"]).tolist(),
-        "grid_agents": np.array(row["Grid 5 Agents"]).tolist(),
-        "collapsed_building": row["Edificio colapsado"],
-        "saved_victims": row["Victimas salvadas"],
-        "lost_victims": row["Victimas perdidas"],
-    } for index, row in collected_data.iterrows()]
-
     # Guardar los datos como un archivo JSON
     with open(output_file, 'w') as outfile:
         json.dump(json_data, outfile, indent=4)
     print(f"Datos de simulación guardados en {output_file}.")
+
 
 
 

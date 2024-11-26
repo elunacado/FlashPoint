@@ -28,9 +28,11 @@ public class WebClient : MonoBehaviour
         public List<float[]> grid_poi;
         public List<float[]> grid_threat_markers;
         public List<float[]> grid_agents;
+        public Dictionary<string, string> wall_states;
         public bool collapsed_building;
         public int saved_victims;
         public int lost_victims;
+
     }
 
     // Coroutine para enviar solicitudes POST
@@ -59,34 +61,32 @@ public class WebClient : MonoBehaviour
                 try
                 {
                     SimulationResponse response = JsonConvert.DeserializeObject<SimulationResponse>(www.downloadHandler.text);
-                    
-                    if (response.grid_walls == null || response.grid_walls.Count == 0)
+
+                    if (response.wall_states == null || response.wall_states.Count == 0)
                     {
-                        Debug.LogError("Error: grid_walls es nulo o está vacío después de deserialización.");
+                        Debug.LogError("Error: wall_states es nulo o está vacío después de deserialización.");
                     }
                     else
                     {
-                        Debug.Log($"grid_walls contiene {response.grid_walls.Count} filas.");
+                        Debug.Log($"wall_states contiene {response.wall_states.Count} entradas.");
+                        UpdateScene(response);
                     }
-                    
-                    UpdateScene(response);
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Error al deserializar la respuesta: {ex.Message}");
+                    Debug.LogError($"Error al deserializar la respuesta: {ex.Message}\nJSON: {www.downloadHandler.text}");
                 }
             }
-
         }
     }
 
-    // Método para actualizar la escena
+
     void UpdateScene(SimulationResponse response)
     {
-        // Validar que grid_walls no sea nulo ni esté vacío
-        if (response.grid_walls == null || response.grid_walls.Count == 0)
+        // Validar que wall_states no sea nulo ni esté vacío
+        if (response.wall_states == null || response.wall_states.Count == 0)
         {
-            Debug.LogError("Error: grid_walls es nulo o está vacío. Revisa el servidor o los datos enviados.");
+            Debug.LogError("Error: wall_states es nulo o está vacío.");
             return;
         }
 
@@ -94,50 +94,59 @@ public class WebClient : MonoBehaviour
         float cellWidth = 10.0f; // Ajusta según el tamaño real de las celdas en el eje X
         float cellHeight = 10.0f; // Ajusta según el tamaño real de las celdas en el eje Z
 
-        for (int row = 0; row < response.grid_walls.Count; row++)
-        //for (int row = 0; row < 2; row++)
+        foreach (var wall in response.wall_states)
         {
-            // Validar que la fila no sea nula ni esté vacía
-            if (response.grid_walls[row] == null || response.grid_walls[row].Length == 0)
-            {
-                Debug.LogError($"Error: La fila {row} de grid_walls es nula o está vacía.");
-                continue;
-            }
+            string key = wall.Key; // Clave como "((x1, y1), (x2, y2))"
+            string state = wall.Value; // Estado de la pared, por ejemplo, "okay"
 
-            for (int col = 0; col < response.grid_walls[row].Length; col++)
+            // Parsear las coordenadas de la clave
+            try
             {
-                // Obtener el valor de la celda
-                int wallValue = response.grid_walls[row][col];
-                Vector3 cellPosition = new Vector3(col * cellWidth, 0, -row * cellHeight);
+                string[] coordinates = key.Trim('(', ')').Split(new[] { "), (" }, System.StringSplitOptions.None);
+                string[] coord1 = coordinates[0].Split(',');
+                string[] coord2 = coordinates[1].Split(',');
 
-                // Instanciar paredes según el valor de grid_walls
-                if ((wallValue & 1) != 0) // Pared derecha
+                // Intercambiar las coordenadas X ↔ Y
+                int x1 = int.Parse(coord1[1].Trim()); // Intercambio: Y pasa a ser X
+                int y1 = int.Parse(coord1[0].Trim()); // Intercambio: X pasa a ser Y
+                int x2 = int.Parse(coord2[1].Trim()); // Intercambio: Y pasa a ser X
+                int y2 = int.Parse(coord2[0].Trim()); // Intercambio: X pasa a ser Y
+
+                // Calcular la posición de la pared
+                if (x1 == x2) // Diferencia en Y -> Pared horizontal
                 {
-                    Vector3 position = cellPosition + new Vector3(cellWidth / 2, 0, 0);
-                    Instantiate(verticalWallPrefab, position, Quaternion.Euler(0, 90, 0));
-                    Debug.Log($"Instanciando pared derecha en posición: {position}");
-                }
-                if ((wallValue & 2) != 0) // Pared abajo
-                {
-                    Vector3 position = cellPosition + new Vector3(0, 0, -cellHeight / 2);
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity );
-                    Debug.Log($"Instanciando pared abajo en posición: {position}");
-                }
-                if ((wallValue & 4) != 0) // Pared izquierda
-                {
-                    Vector3 position = cellPosition + new Vector3(-cellWidth / 2, 0, 0);
-                    Instantiate(verticalWallPrefab, position, Quaternion.Euler(0, 90, 0));
-                    Debug.Log($"Instanciando pared izquierda en posición: {position}");
-                }
-                if ((wallValue & 8) != 0) // Pared arriba
-                {
-                    Vector3 position = cellPosition + new Vector3(0, 0, cellHeight / 2);
+                    float centerX = x1 * cellWidth;
+                    float centerZ = ((y1 + y2) / 2.0f) * -cellHeight; // Promedio de Y para la posición central
+                    Vector3 position = new Vector3(centerX, 0, centerZ);
+
                     Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Debug.Log($"Instanciando pared arriba en posición: {position}");
+                    Debug.Log($"Instanciando pared horizontal entre ({y1}, {x1}) y ({y2}, {x2}), Estado: {state}");
                 }
+                else if (y1 == y2) // Diferencia en X -> Pared vertical
+                {
+                    float centerX = ((x1 + x2) / 2.0f) * cellWidth; // Promedio de X para la posición central
+                    float centerZ = y1 * -cellHeight;
+                    Vector3 position = new Vector3(centerX, 0, centerZ);
+
+                    Instantiate(verticalWallPrefab, position, Quaternion.identity);
+                    Debug.Log($"Instanciando pared vertical entre ({y1}, {x1}) y ({y2}, {x2}), Estado: {state}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Pared con coordenadas no alineadas: {key}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error al procesar la pared: {key}. Detalles: {ex.Message}");
             }
         }
     }
+
+
+
+
+
 
 
 
