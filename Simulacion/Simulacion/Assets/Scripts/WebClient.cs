@@ -13,8 +13,8 @@ public class WebClient : MonoBehaviour
     // Referencias de prefabs (asignadas desde el Inspector)
     public GameObject verticalWallPrefab;
     public GameObject horizontalWallPrefab;
-    public GameObject doorOpen;
-    public GameObject doorClosed;
+    public GameObject horizontalDoor;
+    public GameObject verticalDoor;
     public GameObject poiPrefab;
 
     [System.Serializable]
@@ -87,19 +87,17 @@ public class WebClient : MonoBehaviour
 
     void UpdateScene(SimulationResponse response)
     {
-        // Validar que grid_poi no sea nulo ni esté vacío
+        // Validar que los datos necesarios no sean nulos ni estén vacíos
         if (response.grid_poi == null || response.grid_poi.Count == 0)
         {
             Debug.LogError("Error: grid_poi es nulo o está vacío.");
             return;
         }
-        // Validar que wall_states y door_states no sean nulos ni estén vacíos
         if (response.wall_states == null || response.wall_states.Count == 0)
         {
             Debug.LogError("Error: wall_states es nulo o está vacío.");
             return;
         }
-
         if (response.door_states == null || response.door_states.Count == 0)
         {
             Debug.LogError("Error: door_states es nulo o está vacío.");
@@ -107,14 +105,26 @@ public class WebClient : MonoBehaviour
         }
 
         // Definir el tamaño de las celdas en función del plano
-        float cellWidth = 10.0f; // Ajusta según el tamaño real de las celdas en el eje X
-        float cellHeight = 10.0f; // Ajusta según el tamaño real de las celdas en el eje Z
+        float cellWidth = 10.0f;
+        float cellHeight = 10.0f;
 
         // Procesar las paredes
-        foreach (var wall in response.wall_states)
+        ProcessWalls(response.wall_states, cellWidth, cellHeight);
+
+        // Procesar las puertas
+        ProcessDoors(response.door_states, cellWidth, cellHeight);
+
+        // Procesar los POIs
+        ProcessPois(response.grid_poi, cellWidth, cellHeight);
+    }
+
+    // Procesar las paredes
+    void ProcessWalls(Dictionary<string, string> wallStates, float cellWidth, float cellHeight)
+    {
+        foreach (var wall in wallStates)
         {
-            string key = wall.Key; // Clave como "((x1, y1), (x2, y2))"
-            string state = wall.Value; // Estado de la pared, por ejemplo, "okay"
+            string key = wall.Key;
+            string state = wall.Value;
 
             try
             {
@@ -128,12 +138,12 @@ public class WebClient : MonoBehaviour
                 int x2 = int.Parse(coord2[0].Trim());
                 int y2 = int.Parse(coord2[1].Trim());
 
-                // Interpretar las coordenadas de acuerdo con la transformación de la matriz
+                // Transformar coordenadas
                 (x1, y1) = (y1, x1);
                 (x2, y2) = (y2, x2);
 
                 // Calcular la posición de la pared
-                if (x1 == x2) // Diferencia en Y -> Pared horizontal
+                if (x1 == x2)
                 {
                     float centerX = x1 * cellWidth;
                     float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
@@ -142,7 +152,7 @@ public class WebClient : MonoBehaviour
                     Instantiate(horizontalWallPrefab, position, Quaternion.identity);
                     Debug.Log($"Instanciando pared horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
-                else if (y1 == y2) // Diferencia en X -> Pared vertical
+                else if (y1 == y2)
                 {
                     float centerX = ((x1 + x2) / 2.0f) * cellWidth;
                     float centerZ = y1 * -cellHeight;
@@ -157,12 +167,15 @@ public class WebClient : MonoBehaviour
                 Debug.LogError($"Error al procesar la pared: {key}. Detalles: {ex.Message}");
             }
         }
+    }
 
-        // Procesar las puertas
-        foreach (var door in response.door_states)
+    // Procesar las puertas
+    void ProcessDoors(Dictionary<string, string> doorStates, float cellWidth, float cellHeight)
+    {
+        foreach (var door in doorStates)
         {
-            string key = door.Key; // Clave como "((x1, y1), (x2, y2))"
-            string state = door.Value; // Estado de la puerta, por ejemplo, "closed"
+            string key = door.Key;
+            string state = door.Value;
 
             try
             {
@@ -176,27 +189,27 @@ public class WebClient : MonoBehaviour
                 int x2 = int.Parse(coord2[0].Trim());
                 int y2 = int.Parse(coord2[1].Trim());
 
-                // Interpretar las coordenadas de acuerdo con la transformación de la matriz
+                // Transformar coordenadas
                 (x1, y1) = (y1, x1);
                 (x2, y2) = (y2, x2);
 
                 // Calcular la posición de la puerta
-                if (x1 == x2) // Diferencia en Y -> Puerta horizontal
+                if (x1 == x2)
                 {
                     float centerX = x1 * cellWidth;
                     float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
-                    Instantiate(doorClosed, position, Quaternion.identity); // Usa un prefab específico para puertas
+                    Instantiate(horizontalDoor, position, Quaternion.identity);
                     Debug.Log($"Instanciando puerta horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
-                else if (y1 == y2) // Diferencia en X -> Puerta vertical
+                else if (y1 == y2)
                 {
                     float centerX = ((x1 + x2) / 2.0f) * cellWidth;
                     float centerZ = y1 * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
-                    Instantiate(doorClosed, position, Quaternion.identity); // Usa un prefab específico para puertas
+                    Instantiate(verticalDoor, position, Quaternion.identity);
                     Debug.Log($"Instanciando puerta vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
@@ -205,42 +218,39 @@ public class WebClient : MonoBehaviour
                 Debug.LogError($"Error al procesar la puerta: {key}. Detalles: {ex.Message}");
             }
         }
+    }
 
-        // Procesar los pois
-        // Recorrer la matriz grid_poi
-            for (int row = 0; row < response.grid_poi.Count; row++)
+    // Procesar los POIs
+    void ProcessPois(List<float[]> gridPoi, float cellWidth, float cellHeight)
+    {
+        for (int row = 0; row < gridPoi.Count; row++)
+        {
+            if (gridPoi[row] == null || gridPoi[row].Length == 0)
             {
-                if (response.grid_poi[row] == null || response.grid_poi[row].Length == 0)
-                {
-                    Debug.LogWarning($"Fila {row} de grid_poi está vacía o es nula.");
-                    continue;
-                }
-
-                for (int col = 0; col < response.grid_poi[row].Length; col++)
-                {
-                    float poiValue = response.grid_poi[row][col];
-                    if (poiValue > 0) // Solo instanciar si hay un POI definido
-                    {
-                        // Transformar coordenadas según el grid
-                        float xPosition = col * cellWidth;
-                        float zPosition = -row * cellHeight;
-
-                        // Crear posición en Unity
-                        Vector3 poiPosition = new Vector3(xPosition, 0, zPosition);
-
-                        // Instanciar el POI en la posición calculada
-                        GameObject poiInstance = Instantiate(poiPrefab, poiPosition, Quaternion.identity);
-
-                        // Opción: Cambiar el tamaño o color del POI en función de su valor
-                        poiInstance.transform.localScale *= poiValue / 4.0f; // Escala según el valor (4.0 es arbitrario)
-                        poiInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.yellow, Color.red, poiValue / 4.0f);
-
-                        Debug.Log($"Instanciando POI en posición ({col}, {row}) transformada a Unity ({poiPosition}), valor: {poiValue}");
-                    }
-                }
+                Debug.LogWarning($"Fila {row} de grid_poi está vacía o es nula.");
+                continue;
             }
 
+            for (int col = 0; col < gridPoi[row].Length; col++)
+            {
+                float poiValue = gridPoi[row][col];
+                if (poiValue > 0)
+                {
+                    float xPosition = col * cellWidth;
+                    float zPosition = -row * cellHeight;
+
+                    Vector3 poiPosition = new Vector3(xPosition, 0, zPosition);
+                    GameObject poiInstance = Instantiate(poiPrefab, poiPosition, Quaternion.identity);
+
+                    poiInstance.transform.localScale *= poiValue / 4.0f;
+                    poiInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.yellow, Color.red, poiValue / 4.0f);
+
+                    Debug.Log($"Instanciando POI en posición ({col}, {row}) transformada a Unity ({poiPosition}), valor: {poiValue}");
+                }
+            }
+        }
     }
+
 
 
 

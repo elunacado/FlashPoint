@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 52594559961131207}
   - component: {fileID: 369549094666282451}
   m_Layer: 0
-  m_Name: DoorClosed
+  m_Name: verticalDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -165,8 +165,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   verticalWallPrefab: {fileID: 1434873567152038790, guid: 0bac48c660332d14c9f823895c13cc53, type: 3}
   horizontalWallPrefab: {fileID: 8114584977046154505, guid: 9b5e73222f63ce44f99c6a3d8ff6843b, type: 3}
-  doorOpen: {fileID: 502492496691931201, guid: 4f897f9462c5a0946b1a670e49f6f1d4, type: 3}
-  doorClosed: {fileID: 6257488371424607524, guid: dffe49f6aca224e4499f4aa750e9eafc, type: 3}
+  horizontalDoor: {fileID: 6257488371424607524, guid: dffe49f6aca224e4499f4aa750e9eafc, type: 3}
+  verticalDoor: {fileID: 6257488371424607524, guid: 10478e6dda87b7d4990ee9ecd40203ce, type: 3}
   poiPrefab: {fileID: 6499355926055242776, guid: ab9ab30c7130c5a4a90743dcfb337a2a, type: 3}
 --- !u!1 &319014427
 GameObject:
