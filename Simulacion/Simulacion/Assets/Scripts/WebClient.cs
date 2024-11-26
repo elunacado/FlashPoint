@@ -17,6 +17,9 @@ public class WebClient : MonoBehaviour
     public GameObject verticalDoor;
     public GameObject poiPrefab;
     public GameObject agentPrefab;
+    public GameObject dropletsPrefab;
+    public GameObject gooPrefab;
+
 
     [System.Serializable]
     public class SimulationRequest
@@ -124,6 +127,9 @@ public class WebClient : MonoBehaviour
 
         // Procesar los agentes
         ProcessAgents(response.grid_agents, cellWidth, cellHeight);
+
+        // Procesar los Threat Markers
+        ProcessThreatMarkers(response.grid_threat_markers, cellWidth, cellHeight);
     }
 
     // Procesar las paredes
@@ -295,7 +301,45 @@ public class WebClient : MonoBehaviour
         }
     }
 
+    // Procesar los Threat Markers
+    void ProcessThreatMarkers(List<float[]> gridThreatMarkers, float cellWidth, float cellHeight)
+    {
+        for (int row = 0; row < gridThreatMarkers.Count; row++)
+        {
+            if (gridThreatMarkers[row] == null || gridThreatMarkers[row].Length == 0)
+            {
+                Debug.LogWarning($"Fila {row} de grid_threat_markers está vacía o es nula.");
+                continue;
+            }
 
+            for (int col = 0; col < gridThreatMarkers[row].Length; col++)
+            {
+                float markerValue = gridThreatMarkers[row][col];
+
+                if (markerValue == 1.0f || markerValue == 2.0f) // Verificar si hay un Threat Marker definido
+                {
+                    // Transformar las coordenadas
+                    float xPosition = col * cellWidth;
+                    float zPosition = -row * cellHeight;
+
+                    // Crear posición en Unity
+                    Vector3 markerPosition = new Vector3(xPosition, 0, zPosition);
+
+                    // Instanciar el prefab correspondiente
+                    if (markerValue == 1.0f)
+                    {
+                        Instantiate(dropletsPrefab, markerPosition, Quaternion.identity);
+                        Debug.Log($"Instanciando Droplets en posición ({col}, {row}) transformada a Unity ({markerPosition})");
+                    }
+                    else if (markerValue == 2.0f)
+                    {
+                        Instantiate(gooPrefab, markerPosition, Quaternion.identity);
+                        Debug.Log($"Instanciando Goo en posición ({col}, {row}) transformada a Unity ({markerPosition})");
+                    }
+                }
+            }
+        }
+    }
 
     // Método Start
     void Start()
