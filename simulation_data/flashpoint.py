@@ -757,6 +757,7 @@ class ModeloEdificio(Model):
                 "Grid 4 Threatmarkers": get_grid_threat_markers,
                 "Grid 5 Agents": get_grid,
                 "Estados Paredes": lambda model: model.wall_states,
+                "Estados Puertas": lambda model: model.door_states,
                 "Steps": lambda model: model.steps,
                 "Edificio colapsado": lambda model: model.collapsed_building,
                 "Victimas salvadas": lambda model: model.saved_victims,
@@ -1273,6 +1274,7 @@ def run_model_and_save_to_json(steps: int, model_instance, output_file: str):
             "grid_threat_markers": np.array(row["Grid 4 Threatmarkers"]).tolist(),
             "grid_agents": np.array(row["Grid 5 Agents"]).tolist(),
             "wall_states": convert_keys_to_str(row["Estados Paredes"]),  # Convertir claves a cadenas
+            "door_states": convert_keys_to_str(row["Estados Puertas"]),  # Convertir claves a cadenas
             "collapsed_building": row["Edificio colapsado"],
             "saved_victims": row["Victimas salvadas"],
             "lost_victims": row["Victimas perdidas"],

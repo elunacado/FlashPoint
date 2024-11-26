@@ -13,6 +13,8 @@ public class WebClient : MonoBehaviour
     // Referencias de prefabs (asignadas desde el Inspector)
     public GameObject verticalWallPrefab;
     public GameObject horizontalWallPrefab;
+    public GameObject doorOpen;
+    public GameObject doorClosed;
 
     [System.Serializable]
     public class SimulationRequest
@@ -29,6 +31,7 @@ public class WebClient : MonoBehaviour
         public List<float[]> grid_threat_markers;
         public List<float[]> grid_agents;
         public Dictionary<string, string> wall_states;
+        public Dictionary<string, string> door_states;
         public bool collapsed_building;
         public int saved_victims;
         public int lost_victims;
@@ -83,10 +86,16 @@ public class WebClient : MonoBehaviour
 
     void UpdateScene(SimulationResponse response)
     {
-        // Validar que wall_states no sea nulo ni esté vacío
+        // Validar que wall_states y door_states no sean nulos ni estén vacíos
         if (response.wall_states == null || response.wall_states.Count == 0)
         {
             Debug.LogError("Error: wall_states es nulo o está vacío.");
+            return;
+        }
+
+        if (response.door_states == null || response.door_states.Count == 0)
+        {
+            Debug.LogError("Error: door_states es nulo o está vacío.");
             return;
         }
 
@@ -94,46 +103,46 @@ public class WebClient : MonoBehaviour
         float cellWidth = 10.0f; // Ajusta según el tamaño real de las celdas en el eje X
         float cellHeight = 10.0f; // Ajusta según el tamaño real de las celdas en el eje Z
 
+        // Procesar las paredes
         foreach (var wall in response.wall_states)
         {
             string key = wall.Key; // Clave como "((x1, y1), (x2, y2))"
             string state = wall.Value; // Estado de la pared, por ejemplo, "okay"
 
-            // Parsear las coordenadas de la clave
             try
             {
+                // Parsear coordenadas
                 string[] coordinates = key.Trim('(', ')').Split(new[] { "), (" }, System.StringSplitOptions.None);
                 string[] coord1 = coordinates[0].Split(',');
                 string[] coord2 = coordinates[1].Split(',');
 
-                // Intercambiar las coordenadas X ↔ Y
-                int x1 = int.Parse(coord1[1].Trim()); // Intercambio: Y pasa a ser X
-                int y1 = int.Parse(coord1[0].Trim()); // Intercambio: X pasa a ser Y
-                int x2 = int.Parse(coord2[1].Trim()); // Intercambio: Y pasa a ser X
-                int y2 = int.Parse(coord2[0].Trim()); // Intercambio: X pasa a ser Y
+                int x1 = int.Parse(coord1[0].Trim());
+                int y1 = int.Parse(coord1[1].Trim());
+                int x2 = int.Parse(coord2[0].Trim());
+                int y2 = int.Parse(coord2[1].Trim());
+
+                // Interpretar las coordenadas de acuerdo con la transformación de la matriz
+                (x1, y1) = (y1, x1);
+                (x2, y2) = (y2, x2);
 
                 // Calcular la posición de la pared
                 if (x1 == x2) // Diferencia en Y -> Pared horizontal
                 {
                     float centerX = x1 * cellWidth;
-                    float centerZ = ((y1 + y2) / 2.0f) * -cellHeight; // Promedio de Y para la posición central
+                    float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
                     Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Debug.Log($"Instanciando pared horizontal entre ({y1}, {x1}) y ({y2}, {x2}), Estado: {state}");
+                    Debug.Log($"Instanciando pared horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
                 else if (y1 == y2) // Diferencia en X -> Pared vertical
                 {
-                    float centerX = ((x1 + x2) / 2.0f) * cellWidth; // Promedio de X para la posición central
+                    float centerX = ((x1 + x2) / 2.0f) * cellWidth;
                     float centerZ = y1 * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
                     Instantiate(verticalWallPrefab, position, Quaternion.identity);
-                    Debug.Log($"Instanciando pared vertical entre ({y1}, {x1}) y ({y2}, {x2}), Estado: {state}");
-                }
-                else
-                {
-                    Debug.LogWarning($"Pared con coordenadas no alineadas: {key}");
+                    Debug.Log($"Instanciando pared vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
             catch (System.Exception ex)
@@ -141,12 +150,55 @@ public class WebClient : MonoBehaviour
                 Debug.LogError($"Error al procesar la pared: {key}. Detalles: {ex.Message}");
             }
         }
+
+        // Procesar las puertas
+        foreach (var door in response.door_states)
+        {
+            string key = door.Key; // Clave como "((x1, y1), (x2, y2))"
+            string state = door.Value; // Estado de la puerta, por ejemplo, "closed"
+
+            try
+            {
+                // Parsear coordenadas
+                string[] coordinates = key.Trim('(', ')').Split(new[] { "), (" }, System.StringSplitOptions.None);
+                string[] coord1 = coordinates[0].Split(',');
+                string[] coord2 = coordinates[1].Split(',');
+
+                int x1 = int.Parse(coord1[0].Trim());
+                int y1 = int.Parse(coord1[1].Trim());
+                int x2 = int.Parse(coord2[0].Trim());
+                int y2 = int.Parse(coord2[1].Trim());
+
+                // Interpretar las coordenadas de acuerdo con la transformación de la matriz
+                (x1, y1) = (y1, x1);
+                (x2, y2) = (y2, x2);
+
+                // Calcular la posición de la puerta
+                if (x1 == x2) // Diferencia en Y -> Puerta horizontal
+                {
+                    float centerX = x1 * cellWidth;
+                    float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
+                    Vector3 position = new Vector3(centerX, 0, centerZ);
+
+                    Instantiate(doorClosed, position, Quaternion.identity); // Usa un prefab específico para puertas
+                    Debug.Log($"Instanciando puerta horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
+                }
+                else if (y1 == y2) // Diferencia en X -> Puerta vertical
+                {
+                    float centerX = ((x1 + x2) / 2.0f) * cellWidth;
+                    float centerZ = y1 * -cellHeight;
+                    Vector3 position = new Vector3(centerX, 0, centerZ);
+
+                    Instantiate(doorClosed, position, Quaternion.identity); // Usa un prefab específico para puertas
+                    Debug.Log($"Instanciando puerta vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error al procesar la puerta: {key}. Detalles: {ex.Message}");
+            }
+        }
     }
-
-
-
-
-
 
 
 
