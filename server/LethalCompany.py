@@ -318,10 +318,15 @@ model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matri
 
 unityFriendlyWalls = []
 unityFriendlyPoi = []
+unityFriendlyGoo = []
+unityFriendlyDoors = []
+unityFriendlyAgents = []
 
 matrixWallsInDecimal = get_grid_walls(model)
 matrixPoiInDecimal = get_grid_poi(model)
-
+matrixGooInDecimal = get_grid_threat_markers(model)
+matrixDoorsInDecimal = get_grid_doors_entries(model)
+matrixAgentsInDecimal = get_grid(model)
 
 for x in range(len(matrixWallsInDecimal)):  # Recorrer las filas
     for y in range(len(matrixWallsInDecimal[0])):  # Recorrer las columnas
@@ -334,14 +339,27 @@ for x in range(len(matrixPoiInDecimal)):  # Recorrer las filas
         poi_value = int(matrixPoiInDecimal[x][y])  # Extraer el valor entero del POI
         unityFriendlyPoi.append({"x": x, "y": y, "PoiValue": poi_value})
 
+for x in range(len(matrixGooInDecimal)):  # Recorrer las filas
+    for y in range(len(matrixGooInDecimal[0])):  # Recorrer las columnas
+        goo_value = int(matrixGooInDecimal[x][y])  # Extraer el valor entero del goo
+        unityFriendlyGoo.append({"x": x, "y": y, "GooValue": goo_value})
+
+for x in range(len(matrixDoorsInDecimal)):
+    for y in range(len(matrixDoorsInDecimal[0])):
+        door_value = int(matrixDoorsInDecimal[x][y])
+        unityFriendlyDoors.append({"x": x, "y":y, "DoorValue": door_value})
+
+
 # Construir el diccionario de datos
 data = {
     "Walls": unityFriendlyWalls,
     "POIs": unityFriendlyPoi,
-    # "Goo": matrix_goo,
-    # "Doors": matrix_doors,
+    "Goo": unityFriendlyGoo,
+    "Doors": unityFriendlyDoors,
     # "Entry_points": matrix_entry_points
 }
+
+print(unityFriendlyDoors)
 
 # Convertir el diccionario a JSON
 json_data = json.dumps(data)
