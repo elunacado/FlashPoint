@@ -27,23 +27,4 @@ Usando los ## [la version que corresponda] - la fecha en formato DD/MM/AAAA
 
 ### Seguiremos construyendo el changelog en orden descendente
 
-## [0.0.1] - 3/11/2024
-Usando los ## Usamos el verbo necesario
-### Agregue
-Colocas lo que hiciste utilizando un indice y poniendo la fecha al final entre parentesis
-- Commit inicial del proyecto (3/11/2024)
-- Se creo el CHANGELOG (3/11/2024)
-- Se creo el PULL_REQUEST_TEMPLATE.md (3/11/2024)
-- Se agregaron los archivos necesarios para la conexión del server (3/11/2024)
-- El caso de prueba (3/11/2024) 
-
-### Cambie  
-- Modifique el .gitignore para ir de acuerdo a lo enseñado (3/11/2024)
-
-## [0.0.2] - 4/11/2024
-### Agregue
-- El folder de agentes (4/11/2024)
-- El folder de los modelos (4/11/2024)
-- Los archivos de los agentes (4/11/2024)
-### Arregle
-- Un problema utilizando Github
+## [0.0.1] - 25/11/2024
