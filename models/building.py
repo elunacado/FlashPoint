@@ -20,8 +20,50 @@ from mesa.time import RandomActivation
 # Importamos el siguiente paquete para el mejor manejo de valores numéricos.
 import numpy as np
 
-from agents.employee_agent import EmployeeAgent
-from agents.lootbug_agent import LootBugAgent
+# Importamos el siguiente paquete para manejar valores numéricos aleatorios.
+import random
+
+# Importamos cityblock para calcular la distancia Manhattan entre dos puntos.
+from scipy.spatial.distance import cityblock
+
+import json
+
+# -----------------------------------------------------------------------------------------------------------
+# AGENTE EMPLEADO
+# -----------------------------------------------------------------------------------------------------------
+
+class EmployeeAgent(Agent):
+    """Clase que representa a un empleado que salva víctimas en el edificio de Lethal Company."""
+
+    def __init__(self, id, model):
+        """
+        Inicializa las propiedades del agente.
+        - id: Identificador único del agente.
+        - model: Referencia al modelo al que pertenece el agente.
+        """
+        super().__init__(id, model)
+        self.ap = 4  # Puntos de acción disponibles
+        self.carrying_victim = False  # Estado de transporte de víctima
+        self.finished_turn = False  # Estado del turno del agente
+        self.next_cell = None  # Próxima celda a la que se moverá el agente
+        self.remaining_AP = 0 # Puntos de acción restantes
+
+# -----------------------------------------------------------------------------------------------------------
+# AGENTE LOOTBUG
+# -----------------------------------------------------------------------------------------------------------
+
+class LootBugAgent(Agent):
+    """Clase que representa a un Lootbug. Este se encarga de mover a los POIs para elevar el juego."""
+    def __init__(self, id, model):
+        super().__init__(id, model)
+        """
+        Inicializa las propiedades del agente LootBug.
+        - id: Identificador único del agente.
+        - model: Referencia al modelo.
+        """
+        self.cargando_poi = False  # Indica si el agente está cargando un POI.
+        self.poi_cargado = None  # Almacena el tipo de POI que lleva cargado.
+        self.state = "capturar_poi"  # Estado inicial del agente.
 
 # -----------------------------------------------------------------------------------------------------------
 # GRIDS
@@ -270,8 +312,6 @@ class ModeloEdificio(Model):
                 if self.threat_markers[adjusted_x][adjusted_y] == 0:  # Solo colocar si la celda está vacía
                     self.threat_markers[adjusted_x][adjusted_y] = 2  # Representar el goo con un valor de 2
                     self.current_threat_markers += 1  # Incrementa el contador de fichas en el tablero
-                    print(f"Goo colocado en ({adjusted_x}, {adjusted_y}). Total fichas: {self.current_threat_markers}")
-
 
     def place_doors(self, doors_data):
         """Coloca puertas en posiciones específicas basadas en los datos proporcionados con ajuste de índice."""
@@ -303,8 +343,6 @@ class ModeloEdificio(Model):
 
                 # Inicializar el estado de la puerta como "closed"
                 self.door_states[door] = "closed"
-
-                print(f"Puerta colocada entre {door} - Estado: closed")
 
     def print_door_info(self):
         """Imprime información sobre los estados de las puertas."""
@@ -724,6 +762,22 @@ class ModeloEdificio(Model):
                 print(f"No se logró alcanzar la meta. Se salvaron {self.saved_victims} y se perdieron {self.lost_victims}.")
             self.running = False
 
+    def to_json(self):
+            """
+            Serializes the current model state, including all grids as layers.
+            """
+            return json.dumps({
+                "doors_entries": get_grid_doors_entries(self).tolist(),
+                "walls": get_grid_walls(self).tolist(),
+                "poi": get_grid_poi(self).tolist(),
+                "threat_markers": get_grid_threat_markers(self).tolist(),
+                "agents": get_grid(self).tolist(),
+                "steps": self.steps,
+                "saved_victims": self.saved_victims,
+                "lost_victims": self.lost_victims,
+                "collapsed_building": self.collapsed_building
+            })
+
     def step(self):
         """
         Ejecuta un paso en la simulación si esta está en ejecución.
@@ -735,3 +789,57 @@ class ModeloEdificio(Model):
             self.steps += 1
             self.schedule.step()
             self.datacollector.collect(self)
+
+            # Return the current state as JSON
+            return self.to_json()
+
+# -----------------------------------------------------------------------------------------------------------
+# INICIALIZAR
+# -----------------------------------------------------------------------------------------------------------
+
+# Leer el archivo testCase.txt
+with open("testCase/testCase.txt") as file:
+    lines = file.readlines()
+
+# Procesar las líneas según la cantidad fija de líneas por sección
+# Sección 1: matrix_walls (6 líneas)
+matrix_walls = [line.split() for line in lines[:6]]
+
+# Sección 2: matrix_poi (3 líneas)
+def process_poi_row(row):
+    return [int(item) if item.isdigit() else item for item in row.split()]
+
+matrix_poi = [process_poi_row(line) for line in lines[6:9]]
+
+# Sección 3: matrix_goo (10 líneas)
+matrix_goo = [list(map(int, line.split())) for line in lines[9:19]]
+
+# Sección 4: matrix_doors (8 líneas)
+matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
+
+# Sección 5: matrix_entry_points (4 líneas)
+matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
+
+# Imprimir los resultados para verificar
+print("Walls Matrix:")
+for row in matrix_walls:
+    print(row)
+
+print("\nPOI Matrix:")
+for row in matrix_poi:
+    print(row)
+
+print("\nGoo Matrix:")
+for row in matrix_goo:
+    print(row)
+
+print("\nDoors Matrix:")
+for row in matrix_doors:
+    print(row)
+
+print("\nEntry Points Matrix:")
+for row in matrix_entry_points:
+    print(row)
+
+# Crear una instancia del modelo
+model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
