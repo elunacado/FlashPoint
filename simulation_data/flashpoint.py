@@ -1292,7 +1292,7 @@ def run_model_and_save_to_json(steps: int, model_instance: ModeloEdificio, outpu
 # -----------------------------------------------------------------------------------------------------------
 
 # Leer el archivo testCase.txt
-with open("testCase/testCase.txt") as file:
+with open("testCase.txt") as file:
     lines = file.readlines()
 
 # Procesar las líneas según la cantidad fija de líneas por sección
