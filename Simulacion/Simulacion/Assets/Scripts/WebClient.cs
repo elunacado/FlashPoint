@@ -16,6 +16,7 @@ public class WebClient : MonoBehaviour
     public GameObject horizontalDoor;
     public GameObject verticalDoor;
     public GameObject poiPrefab;
+    public GameObject agentPrefab;
 
     [System.Serializable]
     public class SimulationRequest
@@ -103,7 +104,11 @@ public class WebClient : MonoBehaviour
             Debug.LogError("Error: door_states es nulo o está vacío.");
             return;
         }
-
+        if (response.grid_agents == null || response.grid_agents.Count == 0)
+        {
+            Debug.LogError("Error: grid_agents es nulo o está vacío.");
+            return;
+        }
         // Definir el tamaño de las celdas en función del plano
         float cellWidth = 10.0f;
         float cellHeight = 10.0f;
@@ -116,6 +121,9 @@ public class WebClient : MonoBehaviour
 
         // Procesar los POIs
         ProcessPois(response.grid_poi, cellWidth, cellHeight);
+
+        // Procesar los agentes
+        ProcessAgents(response.grid_agents, cellWidth, cellHeight);
     }
 
     // Procesar las paredes
@@ -251,6 +259,41 @@ public class WebClient : MonoBehaviour
         }
     }
 
+    // Procesar los agentes
+    void ProcessAgents(List<float[]> gridAgents, float cellWidth, float cellHeight)
+    {
+        for (int row = 0; row < gridAgents.Count; row++)
+        {
+            if (gridAgents[row] == null || gridAgents[row].Length == 0)
+            {
+                Debug.LogWarning($"Fila {row} de grid_agents está vacía o es nula.");
+                continue;
+            }
+
+            for (int col = 0; col < gridAgents[row].Length; col++)
+            {
+                float agentValue = gridAgents[row][col];
+                if (agentValue > 0)
+                {
+                    // Transformar las coordenadas
+                    float xPosition = col * cellWidth;
+                    float zPosition = -row * cellHeight;
+
+                    // Crear posición en Unity
+                    Vector3 agentPosition = new Vector3(xPosition, 0, zPosition);
+
+                    // Instanciar el agente
+                    GameObject agentInstance = Instantiate(agentPrefab, agentPosition, Quaternion.identity);
+
+                    // Opción: Escalar o personalizar el agente en función de su valor
+                    agentInstance.transform.localScale *= agentValue / 7.0f; // Escalar según el valor
+                    agentInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.green, agentValue / 7.0f);
+
+                    Debug.Log($"Instanciando agente en posición ({col}, {row}) transformada a Unity ({agentPosition}), valor: {agentValue}");
+                }
+            }
+        }
+    }
 
 
 
