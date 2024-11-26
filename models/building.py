@@ -820,26 +820,5 @@ matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
 # Sección 5: matrix_entry_points (4 líneas)
 matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
 
-# Imprimir los resultados para verificar
-print("Walls Matrix:")
-for row in matrix_walls:
-    print(row)
-
-print("\nPOI Matrix:")
-for row in matrix_poi:
-    print(row)
-
-print("\nGoo Matrix:")
-for row in matrix_goo:
-    print(row)
-
-print("\nDoors Matrix:")
-for row in matrix_doors:
-    print(row)
-
-print("\nEntry Points Matrix:")
-for row in matrix_entry_points:
-    print(row)
-
 # Crear una instancia del modelo
 model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
