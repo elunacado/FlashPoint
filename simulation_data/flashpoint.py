@@ -73,7 +73,6 @@ class EmployeeAgent(Agent):
 
         # Verifica si es el turno del agente.
         if self.model.turn == self.unique_id:
-            print(f"{self.unique_id}: AP -> {self.ap}")
             self.finished_turn = False
 
             # Reinicia el objetivo al inicio del turno.
@@ -150,13 +149,11 @@ class EmployeeAgent(Agent):
         if valid_neighbors:
             # Selecciona un vecino aleatorio.
             target_position = random.choice(valid_neighbors)
-            print(f"Agente {self.unique_id}: Se moverá random a {target_position}")
 
             self.move_agent_to(target_position)  # Mueve al agente a la posición seleccionada.
 
         else:
             # Si no encuentra vecinos válidos, termina su turno.
-            print(f"Agente {self.unique_id}: No encontró vecinos válidos.")
             self.finished_turn = True
 
     def looking_for_valid_neighbours(self):
@@ -199,8 +196,6 @@ class EmployeeAgent(Agent):
         if not self.model.running:
           return
 
-        print(f"Agente {self.unique_id}: Turno finalizado. AP restantes: {self.ap}")
-
         # Avanza la cantidad de marcadores de riesgo.
         self.model.advance_goo()
 
@@ -216,7 +211,6 @@ class EmployeeAgent(Agent):
         self.remaining_AP = min(self.ap, 4)  # Limitar a 4 AP extras máximo
 
         self.ap = 4 + self.remaining_AP
-        print(f"Agente {self.unique_id}: Empezara siguiente turno con: {self.ap}")
 
         self.remaining_AP = 0
         self.finished_turn = False
@@ -228,7 +222,6 @@ class EmployeeAgent(Agent):
 
         # Pasa el turno al siguiente agente.
         self.model.turn += 1
-        print(f"\nSiguiente turno: Agente {self.model.turn}")
 
     def extinguish(self, position=None):
         """
@@ -241,15 +234,13 @@ class EmployeeAgent(Agent):
         if self.model.threat_markers[position] == 2:
             self.model.threat_markers[position] = 1
             self.ap -= 1
-            print(f"Agente {self.unique_id}: Extinguió goo en {position}. AP restantes: {self.ap}")
 
         # Si es droplet, cambia a vacío.
         elif self.model.threat_markers[position] == 1:
             self.model.threat_markers[position] = 0
             self.model.current_threat_markers -= 1  # Actualizar el contador
             self.ap -= 1
-            print(f"Agente {self.unique_id}: Extinguió droplet en {position}. AP restantes: {self.ap}")
-
+            
         self.check_if_turn_finished()
 
     def check_reached_goal(self):
@@ -265,12 +256,10 @@ class EmployeeAgent(Agent):
             self.model.poi_total_count -= 1
             self.model.poi_in_building -= 1
 
-            print(f"Agente {self.unique_id}: Víctima salvada. Total: {self.model.saved_victims}")
             self.carrying_victim = False
             self.finished_turn = True
         elif not self.carrying_victim and self.model.poi_placement[self.pos] in [3, 4]:
             # Si encuentra un POI válido.
-            print(f"Agente {self.unique_id}: POI encontrado.")
             self.reveal_poi()
 
     def reveal_poi(self):
@@ -284,12 +273,10 @@ class EmployeeAgent(Agent):
             self.model.poi_false_alarm -= 1 # Reduce el contador de falsas alarmas.
             self.model.poi_total_count -= 1 # Reduce el total de POIs.
             self.model.poi_in_building -= 1 # Reduce el total de POIs dentro del edificio.
-            print(f"Agente {self.unique_id}: POI era falsa alarma.")
         elif self.model.poi_placement[self.pos] == 4 and not self.carrying_victim:
             # Si el POI representa a una víctima y el agente no está transportando una.
             self.carrying_victim = True # El agente recoge a la víctima.
             self.model.poi_placement[self.pos] = 0
-            print(f"Agente {self.unique_id}: Encontré una víctima.")
 
     def search_goal_position(self, goal):
         """
@@ -371,7 +358,6 @@ class EmployeeAgent(Agent):
                 if self.ap >= 1:
                     self.open_door(door)
                 else:
-                    print(f"Agente {self.unique_id}: No tiene AP para abrir la puerta entre {door}.")
                     self.finished_turn = True
             elif door_state == "open" or door_state == "removed":
                 # Si la puerta está abierta, se mueve a través de ella.
@@ -391,12 +377,10 @@ class EmployeeAgent(Agent):
                     if self.model.damage_counter <= 6:
                         # Mover aleatoriamente
                         self.move_random()
-                        print(f"Agente {self.unique_id}: No puede dañar más paredes o derrumbará el edificio.")
                         return
                     elif self.ap >= 2:
                         self.damage_wall(wall)
                     else:
-                        print(f"Agente {self.unique_id}: No tiene AP para dañar la pared entre {wall}.")
                         self.finished_turn = True
             else:
                 # Si no hay paredes ni puertas, se mueve directamente.
@@ -410,7 +394,6 @@ class EmployeeAgent(Agent):
         """
         self.model.door_states[door] = "open"
         self.ap -= 1
-        print(f"Agente {self.unique_id}: Abrió la puerta entre {door}. AP restantes: {self.ap}")
 
     def damage_wall(self, wall_position):
         """
@@ -428,44 +411,22 @@ class EmployeeAgent(Agent):
             self.model.wall_states[wall_position] = "damaged"
             self.ap -= 2
             self.model.damage_counter -= 1
-            print(f"Agente {self.unique_id}: Dañó la pared en {wall_position}. AP restantes: {self.ap}")
-
+            
         elif wall_state == "damaged":
             # Si la pared ya está dañada, se destruye.
             self.model.wall_states[wall_position] = "destroyed"
             self.ap -= 2
             self.model.damage_counter -= 1
-            print(f"Agente {self.unique_id}: Destruyó la pared en {wall_position}. AP restantes: {self.ap}")
-
+            
             # Determinar qué pared fue destruida.
             (pos1, pos2) = wall_position
             x1, y1 = pos1
             x2, y2 = pos2
 
-            # Pared horizontal
-            if x1 == x2:
-                if y1 < y2:
-                    if self.model.walls[x1, y1] & 4:
-                        print(f"Agente {self.unique_id}: Destruyó la pared derecha de {pos1} y la pared izquierda de {pos2}.")
-                else:
-                    if self.model.walls[x1, y1] & 1:
-                        print(f"Agente {self.unique_id}: Destruyó la pared izquierda de {pos1} y la pared derecha de {pos2}.")
-
-            # Pared vertical
-            elif y1 == y2:
-                if x1 < x2:
-                    if self.model.walls[x1, y1] & 2:
-                        print(f"Agente {self.unique_id}: Destruyó la pared abajo de {pos1} y la pared arriba de {pos2}.")
-                else:
-                    if self.model.walls[x1, y1] & 8:
-                        print(f"Agente {self.unique_id}: Destruyó la pared arriba de {pos1} y la pared abajo de {pos2}.")
-
             # Actualiza la matriz de paredes para reflejar el estado destruido.
             self.model.update_wall_matrix(wall_position, "destroyed")
 
-        else:
-            # Si la pared ya está destruida, no realiza ninguna acción.
-            print(f"Agente {self.unique_id}: La pared en {wall_position} ya está destruida.")
+        # Si la pared ya está destruida, no realiza ninguna acción.
 
     def move_agent_to(self, new_position):
         """
@@ -476,7 +437,6 @@ class EmployeeAgent(Agent):
 
         # Evita que el agente se mueva a la posición (0, 0).
         if new_position == (0, 0):
-            print(f"Agente {self.unique_id}: Intento de moverse a (0, 0) bloqueado.")
             self.finished_turn = True
             return
 
@@ -494,16 +454,12 @@ class EmployeeAgent(Agent):
             else:
                 # Finaliza el turno si no hay suficientes AP
                 self.finished_turn = True
-            print(f"Agente {self.unique_id}: Movido a {new_position}. AP restantes: {self.ap}")
         else:
             # Si la nueva posición está fuera de los límites, bloquea el movimiento.
-            print(f"Agente {self.unique_id}: Movimiento inválido a {new_position}.")
             self.finished_turn = True
 
     def knocked_down(self):
         """Revisar si algún empleado o víctima resultó herido al estar en una celda con goo."""
-        print("Revisando empleados en celdas con goo...")
-
         # Iterar sobre los agentes en el modelo
         for agent in self.model.schedule.agents:
             # Verificar si el agente es un EmployeeAgent
@@ -512,16 +468,12 @@ class EmployeeAgent(Agent):
                 # Verificar si la celda contiene goo
                 if self.model.threat_markers[x, y] == 2:
                     # Manejar el efecto de goo sobre el empleado
-                    print(f"Empleado {agent.unique_id} está en una celda con goo en ({x}, {y}). Marcado como herido.")
-
-                     # Si el agente lleva una víctima, se pierde
+                    # Si el agente lleva una víctima, se pierde
                     if agent.carrying_victim:
-                        print(f"Empleado {agent.unique_id} llevaba una víctima que se pierde.")
                         self.model.poi_total_count -= 1
                         self.model.poi_real_victim -= 1
                         agent.carrying_victim = False
                         self.model.lost_victims += 1
-                        print(f"Víctima perdida. Víctimas reales restantes: {self.model.poi_real_victim}, Total POIs: {self.model.poi_total_count}")
 
                     # Terminar el turno del agente
                     agent.finished_turn = True
@@ -535,8 +487,7 @@ class EmployeeAgent(Agent):
                     # Colocar al agente en el punto de entrada
                     self.model.grid.place_agent(agent, random_entry_point)
                     agent.pos = random_entry_point  # Actualizar posición del agente
-                    print(f"Empleado {agent.unique_id} fue trasladado al punto de entrada {random_entry_point}.")
-
+                    
         # Revisar si hay POIs en celdas con goo
         for x in range(self.model.height):
             for y in range(self.model.width):
@@ -550,22 +501,16 @@ class EmployeeAgent(Agent):
                     if poi_type == 4:  # Si era una víctima
                         self.model.poi_real_victim -= 1
                         self.model.lost_victims += 1
-                        print(f"Víctima en ({x}, {y}) fue perdida. Total de víctimas perdidas: {self.model.lost_victims}.")
                     elif poi_type == 3:  # Si era una falsa alarma
                         self.model.poi_false_alarm -= 1
-                        print(f"Falsa alarma en ({x}, {y}) eliminada.")
-
-        print("Revisión de efectos de goo completada.")
 
     def check_if_turn_finished(self):
         """
         Verifica si el turno del agente debe finalizar.
         - El turno termina si los puntos de acción (AP) se agotan o si ya se marcó como finalizado.
         """
-        print(f"Agente {self.unique_id}: Checando turn finished.")
 
         if self.ap <= 0 or self.finished_turn:
-            print(f"Agente {self.unique_id}: Se acabó mi energía y mi turno.")
             self.end_turn()
 
 """# LootBugAgent"""
@@ -598,9 +543,6 @@ class LootBugAgent(Agent):
             if not self.model.running:
                 return
 
-            print(f"\n[Turno LootBug {self.unique_id}] Estado actual: {self.state}")
-
-
             if self.state == "capturar_poi":
                 """
                 Estado para buscar y recoger un POI.
@@ -613,18 +555,15 @@ class LootBugAgent(Agent):
                 # Si hay POIs disponibles.
                 if poi_positions:
                     self.target_poi = self.random.choice(poi_positions)
-                    print(f"LootBug {self.unique_id} encontró un POI en {self.target_poi}. Teletransportándose...")
                     self.teleport(self.target_poi)
 
                     # Recoger el POI.
                     x, y = self.pos
                     self.poi_cargado = self.model.poi_placement[x, y]
                     self.model.poi_placement[x, y] = 0
-                    print(f"LootBug {self.unique_id} recogió el POI ({'Falsa Alarma' if self.poi_cargado == 3 else 'Víctima'}) en {self.target_poi}.")
                     self.state = "colocar_poi"
                 else:
                     # Finaliza el turno si no hay POIs.
-                    print("No hay POIs disponibles para que agarre el lootbug.")
                     self.end_turn()
 
             elif self.state == "colocar_poi":
@@ -643,14 +582,11 @@ class LootBugAgent(Agent):
 
                     # Verifica si la celda seleccionada contiene marcadores de amenaza y los elimina.
                     if self.model.threat_markers[nx, ny] in [2, 1]:
-                      print(f"Marcador de amenaza detectado en ({nx}, {ny}). Eliminando marcador...")
                       self.model.threat_markers[nx, ny] = 0
                       self.model.current_threat_markers -= 1  # Actualizar el contador
 
-                    print(f"LootBug {self.unique_id} se teletransporta a {new_position} para colocar el POI.")
                     self.teleport(new_position)  # Se teletransporta a la celda seleccionada.
                     self.model.poi_placement[nx][ny] = self.poi_cargado # Deja el POI.
-                    print(f"LootBug {self.unique_id} dejó el POI ({'Falsa Alarma' if self.poi_cargado == 3 else 'Víctima'}) en {new_position}.")
                     self.poi_cargado = None # Vacía su carga de POI.
                     self.state = "volver_origen" # Cambia al estado para regresar al origen.
 
@@ -660,7 +596,6 @@ class LootBugAgent(Agent):
                 - Se teletransporta al origen.
                 - Reinicia el ciclo volviendo al estado inicial.
                 """
-                print(f"LootBug {self.unique_id} regresa a su posición inicial (0, 0).")
                 self.teleport(self.model.lootbug_nest)
                 self.state = "capturar_poi"  # Reiniciar ciclo
                 self.end_turn()
@@ -671,7 +606,6 @@ class LootBugAgent(Agent):
         - Incrementa el turno del modelo.
         - Si supera el total de agentes, reinicia el contador de turnos.
         """
-        print(f"LootBug {self.unique_id} finalizó su turno.")
         self.model.turn += 1
         if self.model.turn >= len(self.model.schedule.agents):
             # Reinicia el turno si sobrepasa el total
@@ -915,13 +849,6 @@ class ModeloEdificio(Model):
                 self.poi_states[(adjusted_x, adjusted_y)] = "closed"
                 self.poi_in_building += 1
 
-    def print_poi_info(self):
-        """Imprime información sobre los POIs restantes."""
-        print(f"Falsas alarmas restantes: {self.poi_false_alarm}")
-        print(f"Víctimas reales restantes: {self.poi_real_victim}")
-        print(f"Total POIs restantes: {self.poi_total_count}")
-        print(f"Total POIs en edificio: {self.poi_in_building}")
-
     def place_goo(self, goo_data):
         """Coloca goo en posiciones específicas basadas en los datos proporcionados con ajuste de índice."""
         for x, y in goo_data:
@@ -933,8 +860,7 @@ class ModeloEdificio(Model):
                 if self.threat_markers[adjusted_x][adjusted_y] == 0:  # Solo colocar si la celda está vacía
                     self.threat_markers[adjusted_x][adjusted_y] = 2  # Representar el goo con un valor de 2
                     self.current_threat_markers += 1  # Incrementa el contador de fichas en el tablero
-                    print(f"Goo colocado en ({adjusted_x}, {adjusted_y}). Total fichas: {self.current_threat_markers}")
-
+                    
 
     def place_doors(self, doors_data):
         """Coloca puertas en posiciones específicas basadas en los datos proporcionados con ajuste de índice."""
@@ -967,15 +893,6 @@ class ModeloEdificio(Model):
                 # Inicializar el estado de la puerta como "closed"
                 self.door_states[door] = "closed"
 
-                print(f"Puerta colocada entre {door} - Estado: closed")
-
-    def print_door_info(self):
-        """Imprime información sobre los estados de las puertas."""
-        print("\nInformación de las puertas:")
-        for door, state in self.door_states.items():
-            print(f"Puerta {door} - Estado: {state}")
-
-
     def place_start_point(self, entry_points_data):
         """Coloca puntos de entrada en posiciones específicas y las guarda en una lista."""
         self.entry_points = []  # Lista para almacenar puntos de entrada
@@ -989,29 +906,22 @@ class ModeloEdificio(Model):
 
     def replenish_pois(self):
         """Repone los POIs en el edificio."""
-        print("\n[Replenish POIs] Iniciando reposición de POIs...")
-        print(f"Estado inicial: POIs en edificio = {self.poi_in_building}, Falsas alarmas = {self.poi_false_alarm}, Víctimas reales = {self.poi_real_victim}, Total POIs restantes = {self.poi_total_count}")
-
         while self.poi_in_building < min(3, self.poi_total_count):
             # Verificar si quedan POIs disponibles
             if self.poi_false_alarm == 0 and self.poi_real_victim == 0:
-                print("No quedan más POIs para colocar.")
+                # No quedan más POIs para colocar.
                 break
 
             # Elegir un espacio aleatorio en el grid
             x = self.random.randint(0, self.height - 1)
             y = self.random.randint(0, self.width - 1)
-            print(f"Intentando colocar un POI en la celda: ({x}, {y})")
 
             # Verificar las condiciones para colocar un POI
             if self.poi_placement[x, y] == 0:
-                print(f"La celda ({x}, {y}) está vacía. Continuando...")
 
                 if self.threat_markers[x, y] in [2, 1]:
-                    print(f"Marcador de amenaza detectado en ({x}, {y}). Eliminando marcador...")
                     self.threat_markers[x, y] = 0
                     self.current_threat_markers -= 1  # Decrementar el contador de threat markers
-                    print(f"Marcadores de amenaza restantes: {self.current_threat_markers}")
 
                 # Elegir el nuevo POI (aleatoriamente entre 3 y 4)
                 poi_types = (
@@ -1021,7 +931,6 @@ class ModeloEdificio(Model):
 
                 # Barajar aleatoriamente los tipos de POIs
                 new_poi = self.random.choice(poi_types)
-                print(f"Nuevo POI seleccionado: {'Falsa Alarma' if new_poi == 3 else 'Víctima'}")
 
                 # Verificar si hay un agente en la celda
                 cell_agents = self.grid.get_cell_list_contents((x, y))
@@ -1030,25 +939,16 @@ class ModeloEdificio(Model):
                 if employee_present:
                     self.poi_placement[x, y] = new_poi
                     self.poi_in_building += 1
-                    print(f"Agente presente en ({x}, {y}). Revelando POI inmediatamente...")
                     if new_poi == 3:  # Falsa alarma
-                        print(f"POI en ({x}, {y}) era falsa alarma. Eliminando.")
                         self.poi_placement[x, y] = 0
                         self.poi_false_alarm -= 1
                         self.poi_total_count -= 1
                         self.poi_in_building -= 1
-                    elif new_poi == 4:  # Víctima
-                        print(f"POI en ({x}, {y}) es una víctima.")
+                    # else es 4: Víctima
                 else:
                     # Colocar el nuevo POI en la celda
                     self.poi_placement[x, y] = new_poi
-                    print(f"POI colocado en ({x}, {y}): {'Falsa Alarma' if new_poi == 3 else 'Víctima'}")
                     self.poi_in_building += 1
-
-            else:
-                print(f"La celda ({x}, {y}) ya tiene un POI. Intentando otra celda...")
-
-        print(f"[Replenish POIs] Finalizado. Estado final: POIs en edificio = {self.poi_in_building}, Falsas alarmas = {self.poi_false_alarm}, Víctimas reales = {self.poi_real_victim}, Total POIs restantes = {self.poi_total_count}\n")
 
     def can_place_threat_marker(self):
         """
@@ -1063,11 +963,6 @@ class ModeloEdificio(Model):
         (pos1, pos2) = wall_position
         x1, y1 = pos1
         x2, y2 = pos2
-
-        # Imprimir la matriz de paredes antes de la actualización.
-        print("\nMatriz self.walls antes de actualizar:")
-        for row in self.walls:
-            print(" ".join(format(cell, '04b') for cell in row))
 
         if state == "destroyed":
             # Determinar la dirección de la pared a eliminar
@@ -1086,11 +981,6 @@ class ModeloEdificio(Model):
                     self.walls[x1, y1] &= ~8  # Elimina la pared arriba (bit 3) de pos1
                     self.walls[x2, y2] &= ~2  # Elimina la pared abajo (bit 1) de pos2
 
-        # Imprimir la matriz de paredes después de la actualización
-        print("\nMatriz self.walls después de actualizar:")
-        for row in self.walls:
-            print(" ".join(format(cell, '04b') for cell in row))
-
     def update_door_matrix(self, door_position, state):
         """
         Actualiza la matriz de puertas del modelo para reflejar el estado actual.
@@ -1098,11 +988,6 @@ class ModeloEdificio(Model):
         (pos1, pos2) = door_position
         x1, y1 = pos1
         x2, y2 = pos2
-
-        # Imprimir la matriz de puertas antes de la actualización
-        print("\nMatriz self.doors antes de actualizar:")
-        for row in self.doors:
-            print(" ".join(format(cell, '04b') for cell in row))
 
         if state == "removed":
             # Determinar la dirección de la puerta a eliminar
@@ -1121,23 +1006,12 @@ class ModeloEdificio(Model):
                     self.doors[x1, y1] &= ~8  # Elimina el bit arriba (bit 3) de pos1
                     self.doors[x2, y2] &= ~2  # Elimina el bit abajo (bit 1) de pos2
 
-        # Imprimir la matriz de puertas después de la actualización
-        print("\nMatriz self.doors después de actualizar:")
-        for row in self.doors:
-            print(" ".join(format(cell, '04b') for cell in row))
-
     def advance_goo(self):
         """Avanza la cantidad de los marcadores de riesgo."""
 
         # Verificar si quedan threat markers disponibles
         if not self.can_place_threat_marker():
-            print("No se pueden avanzar más threat markers. Límite alcanzado.")
             return
-
-        # Print the threat_markers matrix before advancing goo
-        print("\nMatriz threat_markers antes de advance_goo:")
-        for row in self.threat_markers:
-            print(" ".join(map(str, row)))
 
         # Obtener una lista de todas las posiciones en threat_markers
         threat_markers_positions = [(x, y) for x in range(self.height) for y in range(self.width)]
@@ -1148,7 +1022,6 @@ class ModeloEdificio(Model):
 
         # Verificar si la celda es el lootbug nest (0, 0)
         if (x, y) == (0, 0):
-            print(f"No se puede colocar goo ni droplets en el lootbug nest ({x}, {y}).")
             return
 
         # Verificar si la celda está vacía
@@ -1166,61 +1039,45 @@ class ModeloEdificio(Model):
                 # Colocar droplet en la celda seleccionada
                 self.threat_markers[x, y] = 1
                 self.current_threat_markers += 1
-                print(f"Advance: Se colocó un droplet en la celda ({x}, {y}).")
             elif not no_goo_nearby:
                 # Colocar goo en la celda seleccionada
                 self.threat_markers[x, y] = 2
                 self.current_threat_markers += 1
-                print(f"Advance: Se colocó goo en la celda ({x}, {y}).")
 
         # Si la celda ya contiene un droplet
         elif self.threat_markers[x, y] == 1:
             self.threat_markers[x, y] = 2  # Colocar goo
-            print(f"Advance: El droplet en la celda ({x}, {y}) se convirtió en goo.")
 
         # Si la celda ya contiene goo
         elif self.threat_markers[x, y] == 2:
-            print(f"Goo detectado en la celda ({x}, {y}). Llamando a la función de explosión...")
             self.explosion(x, y)
-
-        # Print the threat_markers matrix after advancing goo
-        print("\nMatriz threat_markers después de advance_goo / explosion:")
-        for row in self.threat_markers:
-            print(" ".join(map(str, row)))
 
     def explosion(self, x, y):
         """Genera explosión de goo, afectando celdas adyacentes."""
 
         # Verificar si quedan threat markers disponibles
         if not self.can_place_threat_marker():
-            print("No se pueden avanzar más threat markers. Límite alcanzado.")
             return
-
-        print(f"Explosión iniciada en la celda ({x}, {y}).")
 
         # Obtener las celdas adyacentes (vecindad de Von Neumann)
         neighbors = self.grid.get_neighborhood((x, y), moore=False, include_center=False)
 
         for nx, ny in neighbors:
-            print(f"Evaluando celda adyacente ({nx}, {ny}).")
             # Verificar si la celda está dentro de los límites
             if 0 <= nx < self.height and 0 <= ny < self.width:
 
                 # Verificar si es el lootbug nest
                 if (nx, ny) == (0, 0):
-                    print(f"No se puede propagar goo ni dañar paredes hacia el lootbug nest ({nx}, {ny}).")
                     continue
 
                 # Eliminar puertas entre la celda actual y la vecina
                 door = tuple(sorted([(x, y), (nx, ny)]))
                 if door in self.door_states:
                     if self.door_states[door] == "closed":
-                        print(f"Puerta cerrada entre ({x}, {y}) y ({nx}, {ny}). La explosión se detiene aquí.")
                         self.door_states[door] = "removed"
                         self.update_door_matrix(door, "removed")
                         continue # Detener la propagación en esta dirección
                     elif self.door_states[door] == "open":
-                        print(f"Puerta abierta entre ({x}, {y}) y ({nx}, {ny}). Continuando explosión.")
                         self.door_states[door] = "removed"
                         self.update_door_matrix(door, "removed")
 
@@ -1231,12 +1088,10 @@ class ModeloEdificio(Model):
                     if current_state == "okay":
                         self.wall_states[wall] = "damaged"
                         self.damage_counter -= 1
-                        print(f" Explosion: Pared dañada entre ({x}, {y}) y ({nx}, {ny}).")
                         continue
                     elif current_state == "damaged":
                         self.wall_states[wall] = "destroyed"
                         self.damage_counter -= 1
-                        print(f" Explosion: Pared destruida entre ({x}, {y}) y ({nx}, {ny}).")
 
                         # Actualizar la matriz de paredes para reflejar el estado destruido
                         self.update_wall_matrix(wall, "destroyed")
@@ -1246,7 +1101,6 @@ class ModeloEdificio(Model):
                 # Si la celda contiene goo, comenzar shockwave.
                 if self.threat_markers[nx, ny] == 2:
                     dx, dy = nx - x, ny - y  # Calcular la dirección
-                    print(f"Goo detectado en la celda adyacente ({nx}, {ny}). Llamando a la función shockwave() en dirección ({dx}, {dy})...")
                     self.shockwave(nx, ny, direction=(dx, dy))
                     continue
 
@@ -1254,24 +1108,18 @@ class ModeloEdificio(Model):
                 if self.threat_markers[nx, ny] == 1:
                     self.threat_markers[nx, ny] = 0
                     self.current_threat_markers -= 1
-                    print(f" Explosion: Droplet eliminado en la celda ({nx}, {ny}).")
-
 
                 # Si la celda está vacía o contenía un droplet, colocar goo.
                 if self.threat_markers[nx, ny] == 0:
                     self.threat_markers[nx, ny] = 2
                     self.current_threat_markers += 1
-                    print(f" Explosion: Se colocó goo en la celda ({nx}, {ny}).")
 
     def shockwave(self, x, y, direction):
         """Propaga una onda expansiva desde la celda especificada."""
 
         # Verificar si quedan threat markers disponibles
         if not self.can_place_threat_marker():
-            print("No se pueden avanzar más threat markers. Límite alcanzado.")
             return
-
-        print(f"Shockwave iniciada en la celda ({x}, {y}) en dirección {direction}.")
 
         dx, dy = direction
         current_x, current_y = x, y
@@ -1280,28 +1128,22 @@ class ModeloEdificio(Model):
             current_x += dx
             current_y += dy
 
-            # Imprimir la celda actual por la que pasa la shockwave
-            print(f"Shockwave pasando por la celda ({current_x}, {current_y}).")
-
             # Verificar si está fuera de los límites del grid
             if not (0 <= current_x < self.height and 0 <= current_y < self.width):
                 break
 
             # Verificar si es el lootbug nest
             if (current_x, current_y) == (0, 0):
-                print(f"La onda expansiva no afecta el lootbug nest ({current_x}, {current_y}).")
                 break
 
             # Verificar si hay una puerta
             door = tuple(sorted([((current_x - dx), (current_y - dy)), (current_x, current_y)]))
             if door in self.door_states:
                 if self.door_states[door] == "closed":
-                    print(f" Shockwave: Puerta cerrada. Eliminando puerta entre {door[0]} y {door[1]}.")
                     self.door_states[door] = "removed"
                     self.update_door_matrix(door, "removed")
                     break
                 elif self.door_states[door] == "open":
-                    print(f" Shockwave: Puerta abierta. Eliminando puerta entre {door[0]} y {door[1]}.")
                     self.door_states[door] = "removed"
                     self.update_door_matrix(door, "removed")
 
@@ -1312,36 +1154,26 @@ class ModeloEdificio(Model):
                 if current_state == "okay":
                     self.wall_states[wall] = "damaged"
                     self.damage_counter -= 1
-                    print(f" Shockwave: Pared dañada entre ({current_x - dx}, {current_y - dy}) y ({current_x}, {current_y}).")
                     break  # Detener la propagación en esta dirección
                 elif current_state == "damaged":
                     self.wall_states[wall] = "destroyed"
                     self.damage_counter -= 1
-                    print(f" Shockwave: Pared destruida entre ({current_x - dx}, {current_y - dy}) y ({current_x}, {current_y}).")
                     self.update_wall_matrix(wall, "destroyed")
                     break  # La onda no puede pasar paredes destruidas
 
             # Verificar si es una celda con droplets
             if self.threat_markers[current_x, current_y] == 1:
-                print(f" Shockwave: Goo colocado en celda con droplets ({current_x}, {current_y}).")
                 self.threat_markers[current_x, current_y] = 2
                 break
 
             # Si la celda está vacía, colocar goo
             if self.threat_markers[current_x, current_y] == 0:
-                print(f" Shockwave: Goo colocado en celda vacía ({current_x}, {current_y}).")
                 self.threat_markers[current_x, current_y] = 2
                 self.current_threat_markers += 1
                 break
 
-        # Print the threat_markers matrix after advancing goo
-        print("\nMatriz threat_markers después de shockwave:")
-        for row in self.threat_markers:
-            print(" ".join(map(str, row)))
-
     def check_secondary_effects(self):
         """Revisar los efectos secundarios después del avance de goo."""
-        print("Revisando efectos secundarios en el threat grid...")
 
         # Iterar por todas las celdas de la cuadrícula
         for x in range(self.height):
@@ -1362,7 +1194,6 @@ class ModeloEdificio(Model):
                         # Cambiar el droplet por goo
                         self.threat_markers[x, y] = 0
                         self.threat_markers[x, y] = 2
-                        print(f"Droplet en ({x}, {y}) convertido en goo debido a proximidad.")
 
     def end_game(self):
         """Verifica las condiciones de victoria o derrota y detiene la simulación si es necesario."""
@@ -1375,16 +1206,9 @@ class ModeloEdificio(Model):
             self.collapsed_building = True
 
         if self.saved_victims == 7:
-            print(f"¡Victoria! Se salvaron {self.saved_victims} víctimas en {self.steps} pasos.")
             self.running = False
 
         elif self.damage_counter == 0 or self.lost_victims == 4:
-            if self.damage_counter == 0:
-                print(f"¡Derrota! El edificio colapsó después de {self.steps} pasos.")
-            elif self.lost_victims == 4:
-                print(f"¡Derrota! Se perdieron {self.lost_victims} víctimas en {self.steps} pasos.")
-            elif self.poi_total_count == 0:
-                print(f"No se logró alcanzar la meta. Se salvaron {self.saved_victims} y se perdieron {self.lost_victims}.")
             self.running = False
 
     def step(self):
@@ -1398,373 +1222,6 @@ class ModeloEdificio(Model):
             self.steps += 1
             self.schedule.step()
             self.datacollector.collect(self)
-
-"""#Input"""
-
-input_data_walls = """
-1001 1000 1100 1001 1100 1001 1000 1100
-0001 0000 0110 0011 0110 0011 0010 0110
-0001 0100 1001 1000 1000 1100 1001 1100
-0011 0110 0011 0010 0010 0110 0011 0110
-1001 1000 1000 1000 1100 1001 1100 1101
-0011 0010 0010 0010 0110 0011 0110 0111
-"""
-
-matrix_walls = [row.split() for row in input_data_walls.strip().split("\n")]
-
-# ------------------------------------------------------------------------------------------------
-input_data_poi = """
-2 4 v
-5 1 f
-5 8 v
-"""
-
-# Procesar el texto: Convertir números a enteros, mantener letras como cadenas.
-def process_row(row):
-    return [int(item) if item.isdigit() else item for item in row.split()]
-
-matrix_poi = [process_row(row) for row in input_data_poi.strip().split("\n")]
-
-# ------------------------------------------------------------------------------------------------
-
-input_data_goo = """
-2 2
-2 3
-3 2
-3 3
-3 4
-3 5
-4 4
-5 6
-5 7
-6 6
-"""
-
-matrix_goo = [list(map(int, row.split())) for row in input_data_goo.strip().split("\n")]
-
-# ------------------------------------------------------------------------------------------------
-
-input_data_doors = """
-1 3 1 4
-2 5 2 6
-2 8 3 8
-3 2 3 3
-4 4 5 4
-4 6 4 7
-6 5 6 6
-6 7 6 8
-"""
-
-matrix_doors = [list(map(int, row.split())) for row in input_data_doors.strip().split("\n")]
-
-# ------------------------------------------------------------------------------------------------
-
-input_data_entry_points = """
-1 6
-3 1
-4 8
-6 3
-"""
-
-matrix_entry_points = [list(map(int, row.split())) for row in input_data_entry_points.strip().split("\n")]
-
-# ------------------------------------------------------------------------------------------------
-
-"""#Run & Test"""
-
-# Crear una instancia del modelo
-model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
-
-# Obtener el estado inicial del grid
-initial_grid_agents = get_grid(model)
-initial_grid_doors_entries = get_grid_doors_entries(model)
-initial_grid_poi = get_grid_poi(model)
-initial_grid_threat_markers = get_grid_threat_markers(model)
-initial_grid_walls = get_grid_walls(model)
-
-# --------------------------------------------------------------------------------------------------------
-
-# Imprimir la matriz del grid con formato
-print("\nEstado inicial de los agentes:")
-print(np.array2string(initial_grid_agents, formatter={'float_kind': lambda x: "%.1f" % x}))
-
-# --------------------------------------------------------------------------------------------------------
-
-# Imprimir la matriz del grid con formato
-print("\nEstado inicial de las puertas y salidas:")
-print(np.array2string(initial_grid_doors_entries, formatter={'float_kind': lambda x: "%.1f" % x}))
-
-# Imprimir los puntos de entrada
-print("\nPuntos de entrada:")
-for entry_point in model.entry_points:
-    print(f"Punto de entrada en posición: {entry_point}")
-
-# Imprimir matriz de puertas
-print("\nMatriz de puertas (doors):")
-for i in range(model.height):
-    print([format(model.doors[i, j], '04b') for j in range(model.width)])
-
-model.print_door_info()
-
-# --------------------------------------------------------------------------------------------------------
-
-# Imprimir la matriz del grid con formato
-print("\nEstado inicial de los pois:")
-print(np.array2string(initial_grid_poi, formatter={'float_kind': lambda x: "%.1f" % x}))
-
-# Imprimir los POIs con su posición y estado
-print("\nPOIs con sus posiciones y estados:")
-for position, state in model.poi_states.items():
-    x, y = position
-    poi_type = model.poi_placement[x][y]  # Obtener el tipo de POI desde la matriz
-    print(f"POI en posición {position} - Tipo: {int(poi_type)} - Estado: {state}")
-
-model.print_poi_info()
-
-# --------------------------------------------------------------------------------------------------------
-
-# Imprimir la matriz del grid con formato
-print("\nEstado inicial de los threat markers:")
-print(np.array2string(initial_grid_threat_markers, formatter={'float_kind': lambda x: "%.1f" % x}))
-# --------------------------------------------------------------------------------------------------------
-
-# Imprimir la matriz del grid con formato
-print("\nEstado inicial de las paredes:")
-print(np.array2string(initial_grid_walls, formatter={'float_kind': lambda x: "%.1f" % x}))
-
-# Obtener la matriz de paredes
-print("\nMatriz de paredes (walls):")
-for i in range(model.height):
-    row = [format(model.walls[i, j], '04b') for j in range(model.width)]  # Convertir cada valor a binario de 4 dígitos
-    print(" ".join(row))
-
-print("\n")
-
-# Define el máximo de pasos para la simulación
-MAX_STEPS = 1000
-
-# Ejecutar el modelo
-while model.running and model.steps < MAX_STEPS:
-    model.step()
-
-# Al finalizar la simulación, imprime los resultados
-print("\nResultados finales de la simulación:")
-print(f"Víctimas salvadas: {model.saved_victims}")
-print(f"Víctimas perdidas: {model.lost_victims}")
-
-# Recupera todos los datos recolectados del modelo en un DataFrame
-all_grids = model.datacollector.get_model_vars_dataframe()
-
-# Muestra las primeras 5 filas del DataFrame
-all_grids.head(5)
-
-# Importar bibliotecas necesarias
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib.colors import ListedColormap, BoundaryNorm
-
-# Crear un colormap personalizado
-colors = [
-    "white",     # Espacio vacío
-    "orange",       # Threatmarkers (fuego o goo)
-    "darkblue",     # POI
-    "darkblue",
-    "purple",    # Agentes
-]
-cmap = ListedColormap(colors)
-
-# Extraer los grids correspondientes a POIs y agentes
-poi_grids = all_grids["Grid 3 POI"].tolist()
-agent_grids = all_grids["Grid 5 Agents"].tolist()
-fire_grids = all_grids["Grid 4 Threatmarkers"].tolist()
-
-# Combinar los grids (sumar sus valores para un solo grid)
-combined_grids = [
-    poi_grid + agent_grid + fire_grid
-    for poi_grid, agent_grid, fire_grid in zip(poi_grids, agent_grids, fire_grids)
-]
-
-# Configurar la figura para la animación
-fig, axs = plt.subplots(figsize=(5, 5))
-axs.set_xticks([])
-axs.set_yticks([])
-
-# Inicializar el primer frame con el grid combinado
-patch = axs.imshow(combined_grids[0], cmap=cmap)
-
-# Definir la función de actualización
-def animate(i):
-    patch.set_data(combined_grids[i])  # Actualizar el grid en cada frame
-    return patch,
-
-# Crear la animación
-anim = FuncAnimation(fig, animate, frames=len(combined_grids), blit=True)
-
-anim
-
-"""# Dibujo de paredes y puertas"""
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-def draw_walls_and_doors(input_walls, input_doors):
-    # Convertir las matrices de entrada en listas
-    walls = [line.split() for line in input_walls.strip().split("\n")]
-    doors = [
-        [int(value, 2) for value in line.strip("[]").replace(",", "").split()]
-        for line in input_doors.strip().split("\n")
-    ]
-    rows, cols = len(walls), len(walls[0])
-
-    # Crear la figura
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.set_xlim(0, cols)
-    ax.set_ylim(0, rows)
-    ax.set_aspect('equal')
-    ax.invert_yaxis()  # Invertir el eje Y para que (0,0) sea la esquina superior izquierda
-
-    # Dibujar paredes y puertas
-    for i in range(rows):
-        for j in range(cols):
-            wall_value = int(walls[i][j], 2)  # Convertir paredes de binario a decimal
-            door_value = doors[i][j]  # Los valores ya están convertidos a enteros
-            x, y = j, i  # Coordenadas de la celda
-
-            # Dibujar paredes sólidas
-            if wall_value & 8:  # Pared arriba
-                ax.plot([x, x + 1], [y, y], 'k-', lw=2)
-            if wall_value & 4:  # Pared derecha
-                ax.plot([x + 1, x + 1], [y, y + 1], 'k-', lw=2)
-            if wall_value & 2:  # Pared abajo
-                ax.plot([x, x + 1], [y + 1, y + 1], 'k-', lw=2)
-            if wall_value & 1:  # Pared izquierda
-                ax.plot([x, x], [y, y + 1], 'k-', lw=2)
-
-            # Dibujar puertas (líneas punteadas)
-            if door_value & 8:  # Puerta arriba
-                ax.plot([x, x + 1], [y, y], 'y--', lw=2)
-            if door_value & 4:  # Puerta derecha
-                ax.plot([x + 1, x + 1], [y, y + 1], 'y--', lw=2)
-            if door_value & 2:  # Puerta abajo
-                ax.plot([x, x + 1], [y + 1, y + 1], 'y--', lw=2)
-            if door_value & 1:  # Puerta izquierda
-                ax.plot([x, x], [y, y + 1], 'y--', lw=2)
-
-    # Configuración del gráfico
-    ax.set_xticks(np.arange(0, cols + 1, 1))
-    ax.set_yticks(np.arange(0, rows + 1, 1))
-    ax.grid(color="gray", linestyle="--", linewidth=0.5)
-    plt.title("Mapa con Paredes y Puertas")
-    plt.show()
-
-
-input_data_walls = """
-1001 1000 1100 1001 1100 1001 1000 1100
-0001 0000 0110 0011 0110 0011 0010 0110
-0001 0100 1001 1000 1000 1100 1001 1100
-0011 0110 0011 0010 0010 0110 0011 0110
-1001 1000 1000 1000 1100 1001 1100 1101
-0011 0010 0010 0010 0110 0011 0110 0111
-"""
-
-input_data_doors = """
-0000 0000 0100 0001 0000 0000 0000 0000
-0000 0000 0000 0000 0100 0001 0000 0010
-0000 0100 0001 0000 0000 0000 0000 1000
-0000 0000 0000 0010 0000 0100 0001 0000
-0000 0000 0000 1000 0000 0000 0000 0000
-0000 0000 0000 0000 0100 0001 0100 0001
-"""
-
-# Dibujar el mapa
-draw_walls_and_doors(input_data_walls, input_data_doors)
-
-"""# Análisis de eficiencia"""
-
-from mesa.batchrunner import batch_run
-
-
-params = {
-    "wall_data": [matrix_walls],          # Matriz de paredes
-    "poi_data": [matrix_poi],            # Matriz de POIs
-    "goo_data": [matrix_goo],            # Matriz de elementos 'goo'
-    "doors_data": [matrix_doors],        # Matriz de puertas
-    "entry_points_data": [matrix_entry_points]  # Matriz de puntos de entrada
-}
-
-STEPS = 500
-ITERATIONS = 50
-
-results = batch_run(
-    ModeloEdificio,
-    parameters=params,
-    iterations=ITERATIONS,
-    max_steps=STEPS,
-    number_processes=1,
-    data_collection_period=1,
-    display_progress=True
-)
-
-df = pd.DataFrame(results)
-
-# Agrupar por RunId y obtener el último paso para cada ejecución
-df_last_step = df.sort_values('Step').groupby('RunId').last().reset_index()
-
-# Eliminar las columnas innecesarias
-df_analysis = df_last_step.drop(
-    ['Step', 'wall_data', 'poi_data', 'goo_data', 'doors_data', 'entry_points_data',
-    'Grid 1 Puertas y salidas', 'Grid 2 Paredes', 'Grid 3 POI', 'Grid 4 Threatmarkers', 'Grid 5 Agents'],
-    axis=1
-)
-
-# Mostrar los primeros 12 registros para verificar
-df_analysis.head(20)
-
-# Cálculo de los promedios
-promedios = {
-    "Promedio de Steps": df_analysis["Steps"].mean(),
-    "Promedio de víctimas salvadas": df_analysis["Victimas salvadas"].mean(),
-    "Promedio de víctimas perdidas": df_analysis["Victimas perdidas"].mean(),
-    "Porcentaje de edificios colapsados": df_analysis["Edificio colapsado"].mean() * 100
-}
-
-# Mostrar promedios
-print("Promedios de las métricas:")
-for key, value in promedios.items():
-    print(f"{key}: {value:.2f}")
-
-# Gráfica: Distribución de resultados (colapsos, víctimas salvadas y perdidas)
-df_analysis["Resultado"] = df_analysis.apply(
-    lambda row: "Colapso" if row["Edificio colapsado"] else
-    "Perdió 4 víctimas" if row["Victimas perdidas"] >= 4 else
-    "Salvó 7 víctimas" if row["Victimas salvadas"] >= 7 else
-    "Otros",
-    axis=1
-)
-
-result_counts = df_analysis["Resultado"].value_counts()
-
-plt.figure(figsize=(10, 6))
-result_counts.plot(kind='bar', color=["#003f5c", "#2f4b7c", "#665191", "#a05195"])
-plt.title("Distribución de resultados de las simulaciones")
-plt.xlabel("Resultado")
-plt.ylabel("Cantidad de corridas")
-plt.xticks(rotation=45)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show()
-
-# Grafica de promedio de victimas salvadas vs victimas perdidas
-plt.figure(figsize=(10, 6))
-plt.bar(["Víctimas salvadas", "Víctimas perdidas"],
-        [promedios["Promedio de víctimas salvadas"], promedios["Promedio de víctimas perdidas"]],
-        color=["#003f5c", "#2f4b7c"])
-plt.title("Promedio de víctimas salvadas vs. víctimas perdidas")
-plt.ylabel("Promedio")
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.show()
-
 
 # Crear el json
 import json
@@ -1781,7 +1238,6 @@ def run_model_and_save_to_json(steps: int, model_instance: ModeloEdificio, outpu
     # Ejecutar el modelo por el número de pasos especificado
     for step in range(steps):
         model_instance.step()  # Avanzar un paso en la simulación
-        print(f"Simulación paso {step + 1} completada.")
 
     # Obtener los datos recolectados del DataCollector
     collected_data = model_instance.datacollector.get_model_vars_dataframe()
@@ -1827,6 +1283,39 @@ def run_model_and_save_to_json(steps: int, model_instance: ModeloEdificio, outpu
     with open(output_file, 'w') as outfile:
         json.dump(json_data, outfile, indent=4)
     print(f"Datos de simulación guardados en {output_file}.")
+
+
+
+
+# -----------------------------------------------------------------------------------------------------------
+# INICIALIZAR
+# -----------------------------------------------------------------------------------------------------------
+
+# Leer el archivo testCase.txt
+with open("testCase/testCase.txt") as file:
+    lines = file.readlines()
+
+# Procesar las líneas según la cantidad fija de líneas por sección
+# Sección 1: matrix_walls (6 líneas)
+matrix_walls = [line.split() for line in lines[:6]]
+
+# Sección 2: matrix_poi (3 líneas)
+def process_poi_row(row):
+    return [int(item) if item.isdigit() else item for item in row.split()]
+
+matrix_poi = [process_poi_row(line) for line in lines[6:9]]
+
+# Sección 3: matrix_goo (10 líneas)
+matrix_goo = [list(map(int, line.split())) for line in lines[9:19]]
+
+# Sección 4: matrix_doors (8 líneas)
+matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
+
+# Sección 5: matrix_entry_points (4 líneas)
+matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
+
+# Crear una instancia del modelo
+model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
 
 
 
