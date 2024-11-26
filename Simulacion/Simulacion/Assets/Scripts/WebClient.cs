@@ -148,15 +148,16 @@ public class WebClient : MonoBehaviour
             // Accede a la lista POIs y muestra su contenido
             foreach (POI poi in response.POIs)
             {
-                Vector3 position = new Vector3(poi.x * -1, 0, poi.y * -1);
+                // Determinar la posición base para instanciar los POIs
+                Vector3 position = new Vector3((poi.x * -1) - .5f , 0, (poi.y * -1) + .5f);
                 if (poi.PoiValue == 4)
                 {
-                    Debug.Log("POI");
+                    Debug.Log("POI in position: " + position + "poi en x" + poi.x + "poi en y" +poi.y);
                     Instantiate(POIPrefab, position, Quaternion.identity);
                 }
                 else if (poi.PoiValue == 3)
                 {
-                    Debug.Log("FAKE POI");
+                    Debug.Log("Fake POI in position: " + position + "poi en x" + poi.x + "poi en y" +poi.y);
                     Instantiate(fakePoiPrefab, position, Quaternion.identity);
                 }
             }
