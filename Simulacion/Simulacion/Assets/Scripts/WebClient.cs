@@ -77,71 +77,72 @@ public class WebClient : MonoBehaviour
             // Accede a la lista Walls y muestra su contenido
             foreach (Wall wall in response.Walls)
             {
-                // Instanciar prefabs dependiendo de la información de la pared
+                // Determinar la posición base para instanciar las paredes
                 Vector3 position = new Vector3(wall.x * -1, 0, wall.y * -1);
-                if (wall.WallValue == 7)
-                {
-                    //WORKS
-                    Instantiate(horizontalWallPrefab, position + new Vector3(-.894f, 0, 0), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 13)
-                {
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 5)
-                {
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 10)
-                {
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f, 0, 0), Quaternion.identity);
-                }
-                else if (wall.WallValue == 6)
-                {
-                    Instantiate(horizontalWallPrefab, position + new Vector3(-0.9f, 0, 0), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 3)
-                {
-                    Instantiate(horizontalWallPrefab, position + new Vector3(-.9f, 0, 0), Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 12)
-                {
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 9)
-                {
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 8)
-                {
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
-                }
-                else if (wall.WallValue == 1)
-                {
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, -0.5f), Quaternion.identity);
-                }
-                else if (wall.WallValue == 2)
-                {
-                    Instantiate(horizontalWallPrefab, position + new Vector3(-.9f, 0, 0), Quaternion.identity);
-                }
-                else if (wall.WallValue == 4)
-                {
-                    Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0.5f), Quaternion.identity);
-                }
 
-                else
+                // Evaluar el valor de la pared y crear las instancias necesarias
+                switch (wall.WallValue)
                 {
-                    Debug.Log("No walls");
+                    case 7: // Izquierda, Abajo, Derecha
+                        Instantiate(horizontalWallPrefab, position + new Vector3(-1f, 0, 0), Quaternion.identity); // Abajo
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 13: // Izquierda, Arriba, Derecha
+                        Instantiate(horizontalWallPrefab, position + new Vector3(0, 0, 0.414f), Quaternion.identity); // Arriba
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 5: // Izquierda, Derecha
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 10: // Arriba, Abajo
+                        Instantiate(horizontalWallPrefab, position + new Vector3(0, 0, 0.414f), Quaternion.identity); // Arriba
+                        Instantiate(horizontalWallPrefab, position + new Vector3(-1f, 0, 0), Quaternion.identity); // Abajo
+                        break;
+
+                    case 6: // Izquierda, Abajo
+                        Instantiate(horizontalWallPrefab, position + new Vector3(-1f, 0, .3f), Quaternion.identity); // Abajo
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        break;
+
+                    case 3: // Abajo, Derecha
+                        Instantiate(horizontalWallPrefab, position + new Vector3(-1f, 0, 0), Quaternion.identity); // Abajo
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 12: // Arriba, Izquierda
+                        Instantiate(horizontalWallPrefab, position + new Vector3(0, 0, 0.414f), Quaternion.identity); // Arriba
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        break;
+
+                    case 9: // Arriba, Derecha
+                        Instantiate(horizontalWallPrefab, position + new Vector3(0, 0, 0.414f), Quaternion.identity); // Arriba
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 8: // Arriba
+                        Instantiate(horizontalWallPrefab, position + new Vector3(0, 0, 0.414f), Quaternion.identity); // Arriba
+                        break;
+
+                    case 1: // Derecha
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 0), Quaternion.identity); // Derecha
+                        break;
+
+                    case 2: // Abajo
+                        Instantiate(horizontalWallPrefab, position + new Vector3(-1f, 0, 0), Quaternion.identity); // Abajo
+                        break;
+
+                    case 4: // Izquierda
+                        Instantiate(verticalWallPrefab, position + new Vector3(-0.5f, 0, 1f), Quaternion.identity); // Izquierda
+                        break;
+
+                    default: // No hay pared
+                        break;
                 }
             }
             // Accede a la lista POIs y muestra su contenido

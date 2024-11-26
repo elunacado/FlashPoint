@@ -337,7 +337,7 @@ for x in range(len(matrixPoiInDecimal)):  # Recorrer las filas
 # Construir el diccionario de datos
 data = {
     "Walls": unityFriendlyWalls,
-    "Poi": unityFriendlyPoi,
+    "POIs": unityFriendlyPoi,
     # "Goo": matrix_goo,
     # "Doors": matrix_doors,
     # "Entry_points": matrix_entry_points
@@ -348,3 +348,4 @@ json_data = json.dumps(data)
 
 def get_matrixes():
     return json_data
+
