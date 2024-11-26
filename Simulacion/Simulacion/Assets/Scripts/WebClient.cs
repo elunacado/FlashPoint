@@ -15,6 +15,7 @@ public class WebClient : MonoBehaviour
     public GameObject horizontalWallPrefab;
     public GameObject doorOpen;
     public GameObject doorClosed;
+    public GameObject poiPrefab;
 
     [System.Serializable]
     public class SimulationRequest
@@ -86,6 +87,12 @@ public class WebClient : MonoBehaviour
 
     void UpdateScene(SimulationResponse response)
     {
+        // Validar que grid_poi no sea nulo ni esté vacío
+        if (response.grid_poi == null || response.grid_poi.Count == 0)
+        {
+            Debug.LogError("Error: grid_poi es nulo o está vacío.");
+            return;
+        }
         // Validar que wall_states y door_states no sean nulos ni estén vacíos
         if (response.wall_states == null || response.wall_states.Count == 0)
         {
@@ -198,6 +205,41 @@ public class WebClient : MonoBehaviour
                 Debug.LogError($"Error al procesar la puerta: {key}. Detalles: {ex.Message}");
             }
         }
+
+        // Procesar los pois
+        // Recorrer la matriz grid_poi
+            for (int row = 0; row < response.grid_poi.Count; row++)
+            {
+                if (response.grid_poi[row] == null || response.grid_poi[row].Length == 0)
+                {
+                    Debug.LogWarning($"Fila {row} de grid_poi está vacía o es nula.");
+                    continue;
+                }
+
+                for (int col = 0; col < response.grid_poi[row].Length; col++)
+                {
+                    float poiValue = response.grid_poi[row][col];
+                    if (poiValue > 0) // Solo instanciar si hay un POI definido
+                    {
+                        // Transformar coordenadas según el grid
+                        float xPosition = col * cellWidth;
+                        float zPosition = -row * cellHeight;
+
+                        // Crear posición en Unity
+                        Vector3 poiPosition = new Vector3(xPosition, 0, zPosition);
+
+                        // Instanciar el POI en la posición calculada
+                        GameObject poiInstance = Instantiate(poiPrefab, poiPosition, Quaternion.identity);
+
+                        // Opción: Cambiar el tamaño o color del POI en función de su valor
+                        poiInstance.transform.localScale *= poiValue / 4.0f; // Escala según el valor (4.0 es arbitrario)
+                        poiInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.yellow, Color.red, poiValue / 4.0f);
+
+                        Debug.Log($"Instanciando POI en posición ({col}, {row}) transformada a Unity ({poiPosition}), valor: {poiValue}");
+                    }
+                }
+            }
+
     }
 
 
