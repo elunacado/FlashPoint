@@ -31,7 +31,7 @@ class Server(BaseHTTPRequestHandler):
         logging.info(f"Received POST data: {post_data.decode('utf-8')}")
 
         # Llamar a la función get_matrixes de LethalCompany
-        json_data = LethalCompany.get_matrixes()
+        json_data = LethalCompany.step_in_simulation()
         
         # Enviar la respuesta
         self._set_response()
