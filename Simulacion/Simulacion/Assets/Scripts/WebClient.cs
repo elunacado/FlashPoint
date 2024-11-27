@@ -263,6 +263,10 @@ public class WebClient : MonoBehaviour
                     // Instanciar la pared vertical
                     GameObject wallInstance = Instantiate(verticalWallPrefab, position, Quaternion.identity);
                     walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
+
+                    // Actualizar el estado visual de la pared
+                    UpdateWallState(wallInstance, state);
+
                     Debug.Log($"Instanciando pared vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
@@ -271,6 +275,21 @@ public class WebClient : MonoBehaviour
                 // Manejar errores durante el procesamiento de la pared
                 Debug.LogError($"Error al procesar la pared: {key}. Detalles: {ex.Message}");
             }
+        }
+    }
+
+    void UpdateWallState(GameObject wallObject, string state)
+    {
+        Renderer renderer = wallObject.GetComponent<Renderer>();
+        if (state == "damaged")
+        {
+            renderer.material.color = Color.green; // Representa una pared dañada
+        }
+        else if (state == "destroyed")
+        {
+            // Destruir el objeto de la pared
+            Destroy(wallObject);
+            Debug.Log("La pared ha sido destruida.");
         }
     }
 
@@ -324,6 +343,10 @@ public class WebClient : MonoBehaviour
                     // Instanciar la puerta vertical y agregarla a la lista
                     GameObject doorInstance = Instantiate(verticalDoor, position, Quaternion.identity);
                     doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
+
+                    // Actualizar el estado visual de la puerta
+                    UpdateDoorState(doorInstance, state);
+
                     Debug.Log($"Instanciando puerta vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
@@ -332,6 +355,28 @@ public class WebClient : MonoBehaviour
                 // Manejar errores durante el procesamiento de la puerta
                 Debug.LogError($"Error al procesar la puerta: {key}. Detalles: {ex.Message}");
             }
+        }
+    }
+
+    void UpdateDoorState(GameObject doorObject, string state)
+    {
+        Renderer renderer = doorObject.GetComponent<Renderer>();
+        if (state == "open")
+        {
+            // Simular apertura rotando la puerta
+            doorObject.transform.rotation = Quaternion.Euler(0, 90, 0); // Rotar 90° en el eje Y
+            Debug.Log("La puerta se ha abierto.");
+        }
+        else if (state == "closed")
+        {
+            doorObject.transform.rotation = Quaternion.Euler(0, 0, 0); // Restablecer la rotación
+            Debug.Log("La puerta está cerrada.");
+        }
+        else if (state == "removed")
+        {
+            // Destruir la puerta
+            Destroy(doorObject); // Eliminar el objeto de la escena
+            Debug.Log("La puerta ha sido destruida.");
         }
     }
 
@@ -364,12 +409,6 @@ public class WebClient : MonoBehaviour
                     
                     // Instanciar el prefab del POI en la posición calculada
                     GameObject poiInstance = Instantiate(poiPrefab, poiPosition, Quaternion.identity);
-
-                    // Escalar el POI según su valor
-                    poiInstance.transform.localScale *= poiValue / 4.0f;
-
-                    // Cambiar el color del POI según su valor (de amarillo a rojo)
-                    poiInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.yellow, Color.red, poiValue / 4.0f);
 
                     // Agregar el POI instanciado a la lista de POIs
                     pois.Add(poiInstance);
