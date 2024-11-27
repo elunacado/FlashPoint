@@ -1280,21 +1280,18 @@ def run_model_and_save_to_json(steps: int, model_instance, output_file: str):
             "lost_victims": row["Victimas perdidas"],
         })
 
-
     # Guardar los datos como un archivo JSON
     with open(output_file, 'w') as outfile:
         json.dump(json_data, outfile, indent=4)
     print(f"Datos de simulación guardados en {output_file}.")
 
-
-
+    return json_data
 
 
 # -----------------------------------------------------------------------------------------------------------
 # INICIALIZAR
 # -----------------------------------------------------------------------------------------------------------
 
-# Leer el archivo testCase.txt
 with open("../testCase/testCase.txt") as file:
     lines = file.readlines()
 
@@ -1317,14 +1314,10 @@ matrix_doors = [list(map(int, line.split())) for line in lines[19:27]]
 # Sección 5: matrix_entry_points (4 líneas)
 matrix_entry_points = [list(map(int, line.split())) for line in lines[27:31]]
 
-# Crear una instancia del modelo
-model = ModeloEdificio(matrix_walls, matrix_poi, matrix_goo, matrix_doors, matrix_entry_points)
+modelo = None
 
-
-
-# Ejemplo de uso
-if __name__ == "__main__":
-    # Crear una instancia del modelo con datos iniciales
+def initialize_model():
+    global modelo
     wall_data = matrix_walls  # Datos de paredes
     poi_data = matrix_poi  # Datos de puntos de interés
     goo_data = matrix_goo  # Datos de goo
@@ -1333,12 +1326,15 @@ if __name__ == "__main__":
 
     # Instanciar el modelo
     modelo = ModeloEdificio(wall_data, poi_data, goo_data, doors_data, entry_points_data)
+    return modelo
 
-    # Ejecutar el modelo y guardar los datos
-    run_model_and_save_to_json(steps=100, model_instance=modelo, output_file="simulation_output.json")
+# Ejemplo de uso
+if __name__ == "__main__":
+    modelo = initialize_model()
+    run_model_and_save_to_json(steps=5, model_instance=modelo, output_file="simulation_output.json")
 
-
-
+"""
+JUST IN CASE
 unityFriendlyWalls = []
 unityFriendlyPoi = []
 unityFriendlyGoo = []
@@ -1397,4 +1393,4 @@ def get_matrixes():
 def step_in_simulation():
     model.step()  # Avanza un paso en la simulación
     return get_matrixes()  # Devuelve el estado actualizado en formato JSON
-
+"""
