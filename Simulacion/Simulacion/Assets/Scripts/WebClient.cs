@@ -265,7 +265,11 @@ public class WebClient : MonoBehaviour
 
                     // Instanciar la pared horizontal
                     GameObject wallInstance = Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    
+                    // Actualizar el estado visual de la pared
+                    UpdateWallState(wallInstance, state);
                     walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
+                    
                     Debug.Log($"Instanciando pared horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
                 else if (y1 == y2) // Si las coordenadas y son iguales, es una pared vertical
@@ -277,10 +281,11 @@ public class WebClient : MonoBehaviour
 
                     // Instanciar la pared vertical
                     GameObject wallInstance = Instantiate(verticalWallPrefab, position, Quaternion.identity);
-                    walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
-
+                    
                     // Actualizar el estado visual de la pared
                     UpdateWallState(wallInstance, state);
+                    walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
+
 
                     Debug.Log($"Instanciando pared vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
@@ -341,11 +346,14 @@ public class WebClient : MonoBehaviour
                     // Calcular la posición central de la puerta
                     float centerX = x1 * cellWidth;
                     float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
-                    Vector3 position = new Vector3(centerX, 0, centerZ);
+                    Vector3 position = new Vector3(centerX, 3, centerZ);
 
                     // Instanciar la puerta horizontal y agregarla a la lista
                     GameObject doorInstance = Instantiate(horizontalDoor, position, Quaternion.identity);
+                     // Actualizar el estado visual de la puerta
+                    UpdateDoorState(doorInstance, state);
                     doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
+
                     Debug.Log($"Instanciando puerta horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
                 else if (y1 == y2) // Si las coordenadas y son iguales, es una puerta vertical
@@ -353,14 +361,15 @@ public class WebClient : MonoBehaviour
                     // Calcular la posición central de la puerta
                     float centerX = ((x1 + x2) / 2.0f) * cellWidth;
                     float centerZ = y1 * -cellHeight;
-                    Vector3 position = new Vector3(centerX, 0, centerZ);
+                    Vector3 position = new Vector3(centerX, 3, centerZ);
 
                     // Instanciar la puerta vertical y agregarla a la lista
                     GameObject doorInstance = Instantiate(verticalDoor, position, Quaternion.identity);
-                    doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
-
+                    
                     // Actualizar el estado visual de la puerta
                     UpdateDoorState(doorInstance, state);
+                    doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
+
 
                     Debug.Log($"Instanciando puerta vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
@@ -376,24 +385,35 @@ public class WebClient : MonoBehaviour
     void UpdateDoorState(GameObject doorObject, string state)
     {
         Renderer renderer = doorObject.GetComponent<Renderer>();
+
         if (state == "open")
         {
             // Simular apertura rotando la puerta
             doorObject.transform.rotation = Quaternion.Euler(0, 90, 0); // Rotar 90° en el eje Y
-            Debug.Log("La puerta se ha abierto.");
+            // Cambiar el color de la puerta a verde
+            if (renderer != null)
+            {
+                renderer.material.color = Color.green; // Cambiar el color a verde
+            }
+            Debug.Log("La puerta se ha abierto (color verde).");
         }
         else if (state == "closed")
         {
-            doorObject.transform.rotation = Quaternion.identity; // Restablecer la rotación
+            // Restablecer la rotación a su estado original
+            doorObject.transform.rotation = Quaternion.identity; // Sin rotación
             Debug.Log("La puerta está cerrada.");
         }
         else if (state == "removed")
         {
-            // Destruir la puerta
-            Destroy(doorObject); // Eliminar el objeto de la escena
-            Debug.Log("La puerta ha sido destruida.");
+            // Cambiar el color de la puerta a rojo en lugar de destruirla
+            if (renderer != null)
+            {
+                renderer.material.color = Color.red; // Cambiar el color a rojo
+            }
+            Debug.Log("La puerta está marcada como destruida (color rojo).");
         }
     }
+
 
     // Procesar los POIs
     void ProcessPois(List<float[]> gridPoi, float cellWidth, float cellHeight)
