@@ -503,6 +503,8 @@ class EmployeeAgent(Agent):
                         self.model.lost_victims += 1
                     elif poi_type == 3:  # Si era una falsa alarma
                         self.model.poi_false_alarm -= 1
+        
+      
 
     def check_if_turn_finished(self):
         """
@@ -512,6 +514,11 @@ class EmployeeAgent(Agent):
 
         if self.ap <= 0 or self.finished_turn:
             self.end_turn()
+        
+          # Verifica si el juego debe terminar. Si el juego ha terminado, no continúa.
+        self.model.end_game()
+        if not self.model.running:
+            return
 
 """# LootBugAgent"""
 
@@ -664,6 +671,7 @@ def get_grid_threat_markers(model):
 def get_grid(model):
     """Crea una representación de los agentes en el edificio."""
     grid = np.zeros((model.grid.width, model.grid.height))
+
 
     # Iterar sobre todas las celdas del grid
     for content, (x, y) in model.grid.coord_iter():
@@ -1331,7 +1339,7 @@ def initialize_model():
 # Ejemplo de uso
 if __name__ == "__main__":
     modelo = initialize_model()
-    run_model_and_save_to_json(steps=5, model_instance=modelo, output_file="simulation_output.json")
+    run_model_and_save_to_json(steps=100, model_instance=modelo, output_file="simulation_output.json")
 
 """
 JUST IN CASE

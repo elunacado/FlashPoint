@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using TMPro;
 
 [System.Serializable]
 public class SimulationData
@@ -51,6 +53,10 @@ public class WebClient : MonoBehaviour
     public GameObject lootbugAgentPrefab;
     public GameObject employeeAgentPrefab;
 
+    public TextMeshProUGUI savedVictimsText;
+    public TextMeshProUGUI lostVictimsText;
+    public TextMeshProUGUI stepsText;
+
     private List<GameObject> instantiatedObjects = new List<GameObject>();
     private RootObject rootObject;
     private int currentStep = 0;
@@ -59,6 +65,8 @@ public class WebClient : MonoBehaviour
     {
         // Call the server at the start of the game
         StartCoroutine(SendRequest());
+        StartCoroutine(UpdateEverySecond());
+
     }
 
     IEnumerator SendRequest()
@@ -79,17 +87,33 @@ public class WebClient : MonoBehaviour
                 Debug.Log("Datos JSON procesados correctamente.");
                 Debug.Log(www.downloadHandler.text);
 
+                UpdateVictimTexts();
+
+
                 // Process the first step
                 ProcessStep(1);
             }
         }
     }
 
-    void Update()
+    void UpdateVictimTexts()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        savedVictimsText.text = $"Chatarra salvada: {rootObject.summary.saved_victims}";
+        lostVictimsText.text = $"Chatarra perdida: {rootObject.summary.lost_victims}";
+    }
+
+    void UpdateStepsText()
+    {
+        stepsText.text = $"Pasos: {rootObject.summary.steps}";
+    }
+
+    IEnumerator UpdateEverySecond()
+    {
+        while (true)
         {
-            Debug.Log("Enter pressed");
+            yield return new WaitForSeconds(1f);
+
+            Debug.Log("A seconds passed");
             // Clear the current step objects
             ClearCurrentStep();
 

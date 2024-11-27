@@ -35,7 +35,7 @@ class Server(BaseHTTPRequestHandler):
             LethalCompany.initialize_model()
 
         # Llamar a la función run_model_and_save_to_json de LethalCompany
-        json_data = LethalCompany.run_model_and_save_to_json(steps=5, model_instance=LethalCompany.modelo, output_file="simulation_output.json")
+        json_data = LethalCompany.run_model_and_save_to_json(steps=1000, model_instance=LethalCompany.modelo, output_file="simulation_output.json")
         
         # Enviar la respuesta
         self._set_response()
