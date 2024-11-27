@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+using TMPro;
 
 public class WebClient : MonoBehaviour
 {
@@ -19,7 +20,6 @@ public class WebClient : MonoBehaviour
     public GameObject agentPrefab;
     public GameObject dropletsPrefab;
     public GameObject gooPrefab;
-
 
     [System.Serializable]
     public class SimulationRequest
@@ -88,7 +88,6 @@ public class WebClient : MonoBehaviour
         }
     }
 
-
     void UpdateScene(SimulationResponse response)
     {
         // Validar que los datos necesarios no sean nulos ni estén vacíos
@@ -116,20 +115,13 @@ public class WebClient : MonoBehaviour
         float cellWidth = 10.0f;
         float cellHeight = 10.0f;
 
-        // Procesar las paredes
+        // Procesar las paredes, puertas, POIs, agentes y threat markers
         ProcessWalls(response.wall_states, cellWidth, cellHeight);
-
-        // Procesar las puertas
         ProcessDoors(response.door_states, cellWidth, cellHeight);
-
-        // Procesar los POIs
         ProcessPois(response.grid_poi, cellWidth, cellHeight);
-
-        // Procesar los agentes
         ProcessAgents(response.grid_agents, cellWidth, cellHeight);
-
-        // Procesar los Threat Markers
         ProcessThreatMarkers(response.grid_threat_markers, cellWidth, cellHeight);
+        ProcessTexts(response.saved_victims, response.lost_victims, response.collapsed_building);
     }
 
     // Procesar las paredes
@@ -340,6 +332,19 @@ public class WebClient : MonoBehaviour
             }
         }
     }
+
+    // Procesar textos de victimas salvadas, perdidas y edificio colapsado
+    public TextMeshProUGUI savedVictimsText;
+    public TextMeshProUGUI lostVictimsText;
+    public TextMeshProUGUI collapsedBuildingText;
+
+    public void ProcessTexts(int savedVictims, int lostVictims, bool collapsedBuilding)
+    {
+        savedVictimsText.text = $"Saved victims: {savedVictims}";
+        lostVictimsText.text = $"Lost victims: {lostVictims}";
+        collapsedBuildingText.text = $"Collapsed building: {collapsedBuilding}";
+    }
+
 
     // Método Start
     void Start()

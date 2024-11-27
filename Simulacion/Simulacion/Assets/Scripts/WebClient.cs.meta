@@ -12,6 +12,7 @@ MonoImporter:
   - agentPrefab: {fileID: 6357984181158273592, guid: 2ce2fc8684b8a5f4cae35b2b5510a2ef, type: 3}
   - dropletsPrefab: {fileID: 262943472354423318, guid: a80b6f766c6d7bb429ccfa4aba60bad8, type: 3}
   - gooPrefab: {fileID: 4314682020110947758, guid: 4b5bf330d1ee6854cadd3492b631644a, type: 3}
+  - savedVictimsText: {fileID: 1122730768400265405, guid: 24611632c7f227e47801ef397ed4a7d6, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
