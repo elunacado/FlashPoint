@@ -676,6 +676,30 @@ def get_grid(model):
 
     return grid
 
+def get_agents_positions(model):
+    """
+    Devuelve un diccionario con las posiciones, el valor correspondiente (6 o 7) en la grid,
+    y el estado de transporte de víctimas para cada agente.
+    """
+    agents_info = []  # Lista para almacenar la información de los agentes
+
+    # Iterar sobre todos los agentes en el modelo
+    for agent in model.schedule.agents:
+        if isinstance(agent, EmployeeAgent) or isinstance(agent, LootBugAgent):  # Verificar tipo de agente
+            # Obtener el valor correspondiente (6 para EmployeeAgent, 7 para LootBugAgent)
+            agent_value = 6 if isinstance(agent, EmployeeAgent) else 7
+            
+            # Crear el diccionario con la información del agente
+            agent_data = {
+                "position": agent.pos,  # Obtener la posición directamente
+                "value": agent_value,  # Valor en la grid (6 o 7)
+                "carrying_victim": getattr(agent, "carrying_victim", False),  # Estado de transporte
+            }
+            agents_info.append(agent_data)  # Agregar la información del agente a la lista
+
+    return agents_info
+
+
 """#Model"""
 
 class ModeloEdificio(Model):
@@ -756,6 +780,7 @@ class ModeloEdificio(Model):
                 "Grid 3 POI": get_grid_poi,
                 "Grid 4 Threatmarkers": get_grid_threat_markers,
                 "Grid 5 Agents": get_grid,
+                "Agentes": get_agents_positions,
                 "Estados Paredes": lambda model: model.wall_states,
                 "Estados Puertas": lambda model: model.door_states,
                 "Steps": lambda model: model.steps,
@@ -1273,11 +1298,13 @@ def run_model_and_save_to_json(steps: int, model_instance, output_file: str):
             "grid_poi": np.array(row["Grid 3 POI"]).tolist(),
             "grid_threat_markers": np.array(row["Grid 4 Threatmarkers"]).tolist(),
             "grid_agents": np.array(row["Grid 5 Agents"]).tolist(),
+            "agents_info": convert_keys_to_str(row["Agentes"]),
             "wall_states": convert_keys_to_str(row["Estados Paredes"]),  # Convertir claves a cadenas
             "door_states": convert_keys_to_str(row["Estados Puertas"]),  # Convertir claves a cadenas
             "collapsed_building": row["Edificio colapsado"],
             "saved_victims": row["Victimas salvadas"],
             "lost_victims": row["Victimas perdidas"],
+            
         })
 
     # Guardar los datos como un archivo JSON

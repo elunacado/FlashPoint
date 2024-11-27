@@ -18,9 +18,12 @@ public class WebClient : MonoBehaviour
     public GameObject verticalDoor;
     public GameObject poiPrefab;
     public GameObject agentPrefab;
+    public GameObject agentVictimPrefab;
     public GameObject lootbugPrefab;
     public GameObject dropletsPrefab;
     public GameObject gooPrefab;
+
+
 
     // Listas para almacenar las referencias a los objetos instanciados en la escena
     private List<GameObject> walls = new List<GameObject>(); // Lista de paredes
@@ -117,6 +120,15 @@ public class WebClient : MonoBehaviour
         public int step; // Paso solicitado al servidor
     }
 
+    // Clase para representar cada agente en 'agents_info'
+    [System.Serializable]
+    public class AgentInfo
+    {
+        public int[] position; // Posición del agente en el formato [x, y]
+        public int value; // Valor que representa el tipo de agente (6 para EmployeeAgent, 7 para LootBugAgent)
+        public bool carrying_victim; // Indica si el agente está transportando una víctima
+    }
+
     // Clase para representar la respuesta del JSON
     [System.Serializable]
     public class SimulationResponse
@@ -126,6 +138,7 @@ public class WebClient : MonoBehaviour
         public List<float[]> grid_poi;
         public List<float[]> grid_threat_markers;
         public List<float[]> grid_agents;
+        public List<AgentInfo> agents_info;
         public Dictionary<string, string> wall_states;
         public Dictionary<string, string> door_states;
         public bool collapsed_building;
@@ -133,6 +146,8 @@ public class WebClient : MonoBehaviour
         public int lost_victims;
 
     }
+
+    
 
     // Método para enviar una solicitud HTTP POST al servidor y procesar la respuesta
     IEnumerator SendRequest(int step)
@@ -209,7 +224,7 @@ public class WebClient : MonoBehaviour
         ProcessWalls(response.wall_states, cellWidth, cellHeight);
         ProcessDoors(response.door_states, cellWidth, cellHeight);
         ProcessPois(response.grid_poi, cellWidth, cellHeight);
-        ProcessAgents(response.grid_agents, cellWidth, cellHeight);
+        ProcessAgents(response.agents_info, cellWidth, cellHeight);
         ProcessThreatMarkers(response.grid_threat_markers, cellWidth, cellHeight);
         ProcessTexts(response.saved_victims, response.lost_victims, response.collapsed_building);
     }
@@ -369,7 +384,7 @@ public class WebClient : MonoBehaviour
         }
         else if (state == "closed")
         {
-            doorObject.transform.rotation = Quaternion.Euler(0, 0, 0); // Restablecer la rotación
+            doorObject.transform.rotation = Quaternion.identity; // Restablecer la rotación
             Debug.Log("La puerta está cerrada.");
         }
         else if (state == "removed")
@@ -421,44 +436,48 @@ public class WebClient : MonoBehaviour
 
 
     // Procesar los agentes
-    void ProcessAgents(List<float[]> gridAgents, float cellWidth, float cellHeight)
+    void ProcessAgents(List<AgentInfo> agentsInfo, float cellWidth, float cellHeight)
     {
-        // Iterar sobre cada fila de la matriz grid_agents
-        for (int row = 0; row < gridAgents.Count; row++)
+        // Limpiar la lista de agentes actuales
+        foreach (var agent in agents)
         {
-            // Validar si la fila actual está vacía o es nula
-            if (gridAgents[row] == null || gridAgents[row].Length == 0)
+            Destroy(agent); // Destruir los agentes instanciados previamente
+        }
+        agents.Clear(); // Vaciar la lista de agentes
+
+        // Iterar sobre la lista de agentes en 'agents_info'
+        foreach (var agentInfo in agentsInfo)
+        {
+            // Invertir las coordenadas: usar `y` como `x` y `x` como `y`
+            float xPosition = agentInfo.position[1] * cellWidth; // Posición en el eje X
+            float zPosition = -agentInfo.position[0] * cellHeight; // Posición en el eje Z (invertir para Unity)
+
+            Vector3 agentPosition = new Vector3(xPosition, 0, zPosition); // Crear la posición en Unity
+
+            // Determinar el prefab a instanciar según el valor y el estado de transporte
+            GameObject prefabToInstantiate;
+            if (agentInfo.value == 6)
             {
-                Debug.LogWarning($"Fila {row} de grid_agents está vacía o es nula."); // Mostrar advertencia
-                continue; // Pasar a la siguiente fila
+                // Seleccionar prefab según `carrying_victim`
+                prefabToInstantiate = agentInfo.carrying_victim ? agentVictimPrefab : agentPrefab;
+            }
+            else if (agentInfo.value == 7)
+            {
+                prefabToInstantiate = lootbugPrefab;
+            }
+            else
+            {
+                Debug.LogWarning($"Valor inesperado en agents_info: {agentInfo.value}");
+                continue; // Saltar al siguiente agente si el valor no es válido
             }
 
-            // Iterar sobre cada columna de la fila actual
-            for (int col = 0; col < gridAgents[row].Length; col++)
-            {
-                float agentValue = gridAgents[row][col]; // Obtener el valor del agente en la posición actual
+            // Instanciar el prefab correspondiente
+            GameObject agentInstance = Instantiate(prefabToInstantiate, agentPosition, Quaternion.identity);
 
-                // Verificar si hay un agente definido (valor igual a 6 o 7)
-                if (agentValue == 6.0f || agentValue == 7.0f)
-                {
-                    // Calcular la posición en Unity usando las coordenadas de la matriz
-                    float xPosition = col * cellWidth; // Posición en el eje X
-                    float zPosition = -row * cellHeight; // Posición en el eje Z (negativo porque Unity usa un sistema de coordenadas diferente)
+            // Agregar el agente instanciado a la lista
+            agents.Add(agentInstance);
 
-                    Vector3 agentPosition = new Vector3(xPosition, 0, zPosition); // Crear el vector de posición para Unity
-
-                    // Seleccionar el prefab a instanciar utilizando una expresión ternaria
-                    GameObject prefabToInstantiate = (agentValue == 6.0f) ? agentPrefab : lootbugPrefab;
-
-                    // Instanciar el prefab correspondiente
-                    GameObject agentInstance = Instantiate(prefabToInstantiate, agentPosition, Quaternion.identity);
-
-                    // Agregar el agente instanciado a la lista de agentes
-                    agents.Add(agentInstance);
-
-                    Debug.Log($"Instanciando {prefabToInstantiate.name} en posición ({col}, {row}) transformada a Unity ({agentPosition}), valor: {agentValue}");
-                }
-            }
+            Debug.Log($"Instanciando {prefabToInstantiate.name} en posición ({agentInfo.position[1]}, {agentInfo.position[0]}) transformada a Unity ({agentPosition}), carrying_victim: {agentInfo.carrying_victim}");
         }
     }
 

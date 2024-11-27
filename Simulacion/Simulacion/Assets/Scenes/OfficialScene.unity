@@ -169,6 +169,7 @@ MonoBehaviour:
   verticalDoor: {fileID: 6257488371424607524, guid: 10478e6dda87b7d4990ee9ecd40203ce, type: 3}
   poiPrefab: {fileID: 6499355926055242776, guid: ab9ab30c7130c5a4a90743dcfb337a2a, type: 3}
   agentPrefab: {fileID: 6357984181158273592, guid: 2ce2fc8684b8a5f4cae35b2b5510a2ef, type: 3}
+  agentVictimPrefab: {fileID: 7843987137759164612, guid: 57d8a3524529a444eb1f9b2285fc3c94, type: 3}
   lootbugPrefab: {fileID: 2138305982883777464, guid: 4a9c13d71c1fb75428581b97d7b62e72, type: 3}
   dropletsPrefab: {fileID: 262943472354423318, guid: a80b6f766c6d7bb429ccfa4aba60bad8, type: 3}
   gooPrefab: {fileID: 4314682020110947758, guid: 4b5bf330d1ee6854cadd3492b631644a, type: 3}
