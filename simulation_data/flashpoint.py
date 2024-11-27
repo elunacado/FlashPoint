@@ -1361,4 +1361,4 @@ if __name__ == "__main__":
     modelo = ModeloEdificio(wall_data, poi_data, goo_data, doors_data, entry_points_data)
 
     # Ejecutar el modelo y guardar los datos
-    run_model_and_save_to_json(steps=100, model_instance=modelo, output_file="simulation_output.json")
+    run_model_and_save_to_json(steps=200, model_instance=modelo, output_file="simulation_output.json")

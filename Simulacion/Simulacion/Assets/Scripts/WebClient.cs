@@ -61,7 +61,7 @@ public class WebClient : MonoBehaviour
 
 
     private int currentStep = 0; // Paso actual de la simulación
-    private int totalSteps = 50; // Define el número máximo de pasos
+    private int totalSteps = 200; // Define el número máximo de pasos
     
     private float stepInterval = 0.3f; // Intervalo de tiempo entre pasos
 
