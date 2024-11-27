@@ -249,7 +249,8 @@ public class WebClient : MonoBehaviour
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
                     // Instanciar la pared horizontal
-                    Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    GameObject wallInstance = Instantiate(horizontalWallPrefab, position, Quaternion.identity);
+                    walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
                     Debug.Log($"Instanciando pared horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
                 else if (y1 == y2) // Si las coordenadas y son iguales, es una pared vertical
@@ -260,7 +261,8 @@ public class WebClient : MonoBehaviour
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
                     // Instanciar la pared vertical
-                    Instantiate(verticalWallPrefab, position, Quaternion.identity);
+                    GameObject wallInstance = Instantiate(verticalWallPrefab, position, Quaternion.identity);
+                    walls.Add(wallInstance); // Agregar la instancia a la lista de paredes
                     Debug.Log($"Instanciando pared vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
@@ -307,8 +309,9 @@ public class WebClient : MonoBehaviour
                     float centerZ = ((y1 + y2) / 2.0f) * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
-                    // Instanciar la puerta horizontal
-                    Instantiate(horizontalDoor, position, Quaternion.identity);
+                    // Instanciar la puerta horizontal y agregarla a la lista
+                    GameObject doorInstance = Instantiate(horizontalDoor, position, Quaternion.identity);
+                    doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
                     Debug.Log($"Instanciando puerta horizontal entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
                 else if (y1 == y2) // Si las coordenadas y son iguales, es una puerta vertical
@@ -318,8 +321,9 @@ public class WebClient : MonoBehaviour
                     float centerZ = y1 * -cellHeight;
                     Vector3 position = new Vector3(centerX, 0, centerZ);
 
-                    // Instanciar la puerta vertical
-                    Instantiate(verticalDoor, position, Quaternion.identity);
+                    // Instanciar la puerta vertical y agregarla a la lista
+                    GameObject doorInstance = Instantiate(verticalDoor, position, Quaternion.identity);
+                    doors.Add(doorInstance); // Agregar la instancia a la lista de puertas
                     Debug.Log($"Instanciando puerta vertical entre ({x1}, {y1}) y ({x2}, {y2}), Estado: {state}");
                 }
             }
@@ -330,7 +334,6 @@ public class WebClient : MonoBehaviour
             }
         }
     }
-
 
     // Procesar los POIs
     void ProcessPois(List<float[]> gridPoi, float cellWidth, float cellHeight)
@@ -366,8 +369,10 @@ public class WebClient : MonoBehaviour
                     poiInstance.transform.localScale *= poiValue / 4.0f;
 
                     // Cambiar el color del POI según su valor (de amarillo a rojo)
-                    // Quitar esto luego
                     poiInstance.GetComponent<Renderer>().material.color = Color.Lerp(Color.yellow, Color.red, poiValue / 4.0f);
+
+                    // Agregar el POI instanciado a la lista de POIs
+                    pois.Add(poiInstance);
 
                     Debug.Log($"Instanciando POI en posición ({col}, {row}) transformada a Unity ({poiPosition}), valor: {poiValue}");
                 }
@@ -377,121 +382,96 @@ public class WebClient : MonoBehaviour
 
 
     // Procesar los agentes
-    // Diccionario para almacenar agentes activos y sus referencias en Unity
-    private Dictionary<int, GameObject> activeAgents = new Dictionary<int, GameObject>();
-
     void ProcessAgents(List<float[]> gridAgents, float cellWidth, float cellHeight)
     {
-        // Iterar sobre la grid para mover o instanciar agentes
+        // Iterar sobre cada fila de la matriz grid_agents
         for (int row = 0; row < gridAgents.Count; row++)
         {
+            // Validar si la fila actual está vacía o es nula
+            if (gridAgents[row] == null || gridAgents[row].Length == 0)
+            {
+                Debug.LogWarning($"Fila {row} de grid_agents está vacía o es nula."); // Mostrar advertencia
+                continue; // Pasar a la siguiente fila
+            }
+
+            // Iterar sobre cada columna de la fila actual
             for (int col = 0; col < gridAgents[row].Length; col++)
             {
                 float agentValue = gridAgents[row][col]; // Obtener el valor del agente en la posición actual
 
-                if (agentValue == 6 || agentValue == 7) // Procesar solo si el valor es 6 (agente) o 7 (lootbug)
+                // Verificar si hay un agente definido (valor igual a 6 o 7)
+                if (agentValue == 6.0f || agentValue == 7.0f)
                 {
-                    int agentId = Mathf.FloorToInt(agentValue); // Obtener el ID único del agente (parte entera del valor)
-                    Vector3 agentPosition = new Vector3(col * cellWidth, 0, -row * cellHeight); // Calcular la posición en Unity
+                    // Calcular la posición en Unity usando las coordenadas de la matriz
+                    float xPosition = col * cellWidth; // Posición en el eje X
+                    float zPosition = -row * cellHeight; // Posición en el eje Z (negativo porque Unity usa un sistema de coordenadas diferente)
 
-                    if (activeAgents.ContainsKey(agentId))
-                    {
-                        // Si el agente ya existe, actualizar su posición
-                        activeAgents[agentId].transform.position = agentPosition;
-                    }
-                    else
-                    {
-                        // Si el agente no existe, seleccionar el prefab correspondiente e instanciarlo
-                        GameObject prefabToInstantiate = (agentValue == 6) ? agentPrefab : lootbugPrefab;
-                        GameObject agentInstance = Instantiate(prefabToInstantiate, agentPosition, Quaternion.identity);
-                        activeAgents[agentId] = agentInstance; // Almacenar la referencia en el diccionario
-                    }
+                    Vector3 agentPosition = new Vector3(xPosition, 0, zPosition); // Crear el vector de posición para Unity
+
+                    // Seleccionar el prefab a instanciar utilizando una expresión ternaria
+                    GameObject prefabToInstantiate = (agentValue == 6.0f) ? agentPrefab : lootbugPrefab;
+
+                    // Instanciar el prefab correspondiente
+                    GameObject agentInstance = Instantiate(prefabToInstantiate, agentPosition, Quaternion.identity);
+
+                    // Agregar el agente instanciado a la lista de agentes
+                    agents.Add(agentInstance);
+
+                    Debug.Log($"Instanciando {prefabToInstantiate.name} en posición ({col}, {row}) transformada a Unity ({agentPosition}), valor: {agentValue}");
                 }
             }
-        }
-
-        // Remover agentes que ya no están en la grid
-        var idsToRemove = new List<int>(); // Lista para almacenar IDs de agentes que deben ser eliminados
-
-        foreach (var kvp in activeAgents) // Recorrer los agentes activos
-        {
-            bool exists = false; // Bandera para verificar si el agente sigue en la grid
-
-            // Comprobar si el agente aún está presente en la grid
-            for (int row = 0; row < gridAgents.Count; row++)
-            {
-                for (int col = 0; col < gridAgents[row].Length; col++)
-                {
-                    if (Mathf.FloorToInt(gridAgents[row][col]) == kvp.Key) // Comparar el ID del agente
-                    {
-                        exists = true; // El agente sigue presente
-                        break;
-                    }
-                }
-                if (exists) break; // Salir del bucle si el agente fue encontrado
-            }
-
-            if (!exists) idsToRemove.Add(kvp.Key); // Si el agente no está en la grid, agregarlo a la lista de eliminación
-        }
-
-        // Eliminar los agentes que ya no están presentes en la grid
-        foreach (int id in idsToRemove)
-        {
-            Destroy(activeAgents[id]); // Destruir el GameObject asociado al agente
-            activeAgents.Remove(id); // Remover el agente del diccionario
         }
     }
 
 
 
     // Procesar los Threat Markers
-    // Diccionario para almacenar la relación entre posiciones y objetos de Threat Markers
-    private Dictionary<Vector3, GameObject> threatMarkersMap = new Dictionary<Vector3, GameObject>();
-
     void ProcessThreatMarkers(List<float[]> gridThreatMarkers, float cellWidth, float cellHeight)
     {
-        // HashSet para rastrear las posiciones actuales de los Threat Markers
-        HashSet<Vector3> currentPositions = new HashSet<Vector3>();
-
-        // Iterar sobre la grid de Threat Markers
+        // Iterar sobre cada fila de la matriz gridThreatMarkers
         for (int row = 0; row < gridThreatMarkers.Count; row++)
         {
+            // Verificar si la fila actual está vacía o es nula
+            if (gridThreatMarkers[row] == null || gridThreatMarkers[row].Length == 0)
+            {
+                Debug.LogWarning($"Fila {row} de grid_threat_markers está vacía o es nula."); // Advertencia en caso de error
+                continue; // Continuar con la siguiente fila
+            }
+
+            // Iterar sobre cada columna de la fila actual
             for (int col = 0; col < gridThreatMarkers[row].Length; col++)
             {
-                float markerValue = gridThreatMarkers[row][col]; // Valor del Threat Marker en la posición actual
+                float markerValue = gridThreatMarkers[row][col]; // Obtener el valor del Threat Marker en la posición actual
 
-                if (markerValue > 0) // Procesar solo si hay un Threat Marker
+                // Verificar si el valor indica un Threat Marker válido (1.0 para Droplets o 2.0 para Goo)
+                if (markerValue == 1.0f || markerValue == 2.0f)
                 {
-                    // Calcular la posición en Unity
-                    Vector3 position = new Vector3(col * cellWidth, 0, -row * cellHeight);
-                    
-                    // Agregar la posición al conjunto de posiciones actuales
-                    currentPositions.Add(position);
+                    // Calcular la posición en Unity usando las coordenadas de la matriz
+                    float xPosition = col * cellWidth; // Posición en el eje X
+                    float zPosition = -row * cellHeight; // Posición en el eje Z (negativo para adaptar el sistema de coordenadas)
 
-                    // Verificar si ya existe un Threat Marker en esta posición
-                    if (!threatMarkersMap.ContainsKey(position))
+                    Vector3 markerPosition = new Vector3(xPosition, 0, zPosition); // Crear el vector de posición para Unity
+
+                    // Instanciar el prefab correspondiente según el valor del marcador
+                    GameObject markerInstance;
+                    if (markerValue == 1.0f)
                     {
-                        // Seleccionar el prefab adecuado según el valor del Threat Marker
-                        GameObject prefab = markerValue == 1.0f ? dropletsPrefab : gooPrefab;
-
-                        // Instanciar el prefab y almacenarlo en el diccionario
-                        GameObject markerInstance = Instantiate(prefab, position, Quaternion.identity);
-                        threatMarkersMap[position] = markerInstance;
+                        markerInstance = Instantiate(dropletsPrefab, markerPosition, Quaternion.identity);
+                        Debug.Log($"Instanciando Droplets en posición ({col}, {row}) transformada a Unity ({markerPosition})");
                     }
+                    else // markerValue == 2.0f
+                    {
+                        markerInstance = Instantiate(gooPrefab, markerPosition, Quaternion.identity);
+                        Debug.Log($"Instanciando Goo en posición ({col}, {row}) transformada a Unity ({markerPosition})");
+                    }
+
+                    // Agregar el Threat Marker instanciado a la lista
+                    threatMarkers.Add(markerInstance);
                 }
             }
         }
-
-        // Eliminar Threat Markers obsoletos que ya no están en la grid
-        foreach (var pos in new List<Vector3>(threatMarkersMap.Keys)) // Crear una copia de las claves para iterar
-        {
-            if (!currentPositions.Contains(pos)) // Si la posición no está en las posiciones actuales
-            {
-                Destroy(threatMarkersMap[pos]); // Destruir el objeto asociado
-                threatMarkersMap.Remove(pos); // Remover la posición del diccionario
-            }
-        }
     }
+
 
 
     // Procesar textos de victimas salvadas, perdidas y edificio colapsado
